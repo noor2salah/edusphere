@@ -35,7 +35,7 @@ class AuthController extends Controller
         $password = $request->password;
         $code = mt_rand(10000, 99999);
 
-        $user = User::whereEmail()->first();
+        $user = User::whereEmail($email)->first();
         if (!$user) {
             return response()->json([
                 'message' => 'user not found',
