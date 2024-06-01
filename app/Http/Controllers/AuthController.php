@@ -383,14 +383,13 @@ class AuthController extends Controller
     public function userResetPassword(Request $request)
     {
         $request->validate([
-            'code'=>'required|exists:reset_code_passwords',
             'password'=>'required',
             'confirmed_password'=>'required|same:password',
         ]);
 
-        $code = $request->input('code');
+        $passwordReset = ResetCodePassword::query()->first();
 
-        if(!$passwordReset = DB::table('reset_code_passwords')->where('code',$code)->first())
+        if(!$passwordReset)
         {
             return response()->json([
                 'message'=>'invalid code'
@@ -419,12 +418,58 @@ class AuthController extends Controller
         $user->save();
         $verfiyCode->save();
         //delete current code
-        //$passwordReset->delete();
+        $passwordReset->delete();
+
 
         return response()->json([
             'message' => 'password has been successfully reset',
         ]);
     }
+    // public function userResetPassword(Request $request)
+    // {
+    //     $request->validate([
+    //         'code'=>'required|exists:reset_code_passwords',
+    //         'password'=>'required',
+    //         'confirmed_password'=>'required|same:password',
+    //     ]);
+
+    //     $code = $request->input('code');
+
+    //     if(!$passwordReset = DB::table('reset_code_passwords')->where('code',$code)->first())
+    //     {
+    //         return response()->json([
+    //             'message'=>'invalid code'
+    //         ],400);
+
+    //     }
+
+    //     if(!$user = User::where('email', $passwordReset->email)->first())
+    //     {
+    //         return response()->json([
+    //             'message'=>'user does not exist'
+    //         ],404 );
+    //     }
+    //     if(!$verfiyCode = Verficationcode::where('email', $passwordReset->email)->first())
+    //     {
+    //         return response()->json([
+    //             'message'=>'verfiy code is invalid'
+    //         ],404 );
+    //     }
+
+    //     $password = bcrypt($request->input('password'));
+    //     $confirmed_password = bcrypt($request->input('confirmed_password'));
+
+    //     $user->password = $password;
+    //     $verfiyCode->password = $password;
+    //     $user->save();
+    //     $verfiyCode->save();
+    //     //delete current code
+    //     //$passwordReset->delete();
+
+    //     return response()->json([
+    //         'message' => 'password has been successfully reset',
+    //     ]);
+    // }
     public function profileStudent($id)
     {
         $student = DB::table('students')
