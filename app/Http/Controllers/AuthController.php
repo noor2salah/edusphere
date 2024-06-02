@@ -371,9 +371,7 @@ class AuthController extends Controller
 
         //find the code
         $passwordReset = ResetCodePassword::query()->firstWhere('code', $request['code']);
-
-
-
+        if(!is_null($passwordReset))
         return response()->json([
             'code' => $passwordReset['code'],
             'message' => trans('password code is valid')
@@ -386,7 +384,7 @@ class AuthController extends Controller
             'password'=>'required',
             'confirmed_password'=>'required|same:password',
         ]);
-
+        $user = auth()->user();
         $passwordReset = ResetCodePassword::query()->first();
 
         if(!$passwordReset)
