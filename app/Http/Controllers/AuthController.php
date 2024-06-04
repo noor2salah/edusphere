@@ -384,7 +384,6 @@ class AuthController extends Controller
     {
         $request->validate([
             'password'=>'required',
-            'confirmed_password'=>'required|same:password',
             'token_code'=>['required','string']
         ]);
 
