@@ -350,6 +350,7 @@ class AuthController extends Controller
 
         //generate random code
         $data['code'] = mt_rand(10000, 99999);
+        $data['token_code']=Hash::make($data['code']);
 
         //create a new code
         $codeData = ResetCodePassword::query()->create($data);
@@ -374,6 +375,7 @@ class AuthController extends Controller
         if(!is_null($passwordReset))
         return response()->json([
             'code' => $passwordReset['code'],
+            'token_code'=> $passwordReset['token_code'],
             'message' => trans('password code is valid')
 
         ]);
@@ -383,9 +385,13 @@ class AuthController extends Controller
         $request->validate([
             'password'=>'required',
             'confirmed_password'=>'required|same:password',
+            'token_code'=>['required','string']
         ]);
-        $user = auth()->user();
-        $passwordReset = ResetCodePassword::query()->first();
+
+
+        $passwordReset = ResetCodePassword::query()
+        ->where('token_code','=',$request->input('token_code'))
+        ->first();
 
         if(!$passwordReset)
         {
@@ -401,20 +407,17 @@ class AuthController extends Controller
                 'message'=>'user does not exist'
             ],404 );
         }
-        if(!$verfiyCode = Verficationcode::where('email', $passwordReset->email)->first())
-        {
-            return response()->json([
-                'message'=>'verfiy code is invalid'
-            ],404 );
-        }
+        // if(!$verfiyCode == Verficationcode::where('email', $passwordReset->email)->first())
+        // {
+        //     return response()->json([
+        //         'message'=>'verfiy code is invalid'
+        //     ],404 );
+        // }
 
         $password = bcrypt($request->input('password'));
-        $confirmed_password = bcrypt($request->input('confirmed_password'));
 
         $user->password = $password;
-        $verfiyCode->password = $password;
         $user->save();
-        $verfiyCode->save();
         //delete current code
         $passwordReset->delete();
 
