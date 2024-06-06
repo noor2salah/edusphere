@@ -10,7 +10,7 @@ use App\Models\teacher;
 class description_about_the_teacher extends Model
 {
     use HasFactory;
-    //
+    ////
     protected $fillable = [
         'id',
         'teacher_id',
