@@ -5,8 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\classs;
 use App\Models\User;
 use App\Models\student;
-use Illuminate\support\Facades\Auth;
-use Illuminate\support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
