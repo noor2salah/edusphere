@@ -13,7 +13,6 @@ use App\Models\test;
 
 class class_subject extends Model
 {
-    ////
     use HasFactory;
     protected $fillable = [
         'id',

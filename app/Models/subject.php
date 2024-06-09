@@ -16,6 +16,7 @@ class subject extends Model
         'id',
         'name',
         'the_class',
+        'total_grade',
         'about_subject',
         'book_path'
     ];

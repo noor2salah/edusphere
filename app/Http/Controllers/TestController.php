@@ -7,9 +7,12 @@ use App\Models\classs;
 use App\Models\class_subject;
 use App\Models\grade;
 use App\Models\test;
+use Auth;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+
 use PHPUnit\Event\Code\Test as CodeTest;
 
 
@@ -48,33 +51,39 @@ class TestController extends Controller
         $class_level = $request->input('class_level');
         $class_number = $request->input('class_number');
         $exam_paper_path = $request->file('exam_paper_path');
+        $subject_name = $request->input('subject_name');
+
 
         if ($exam_paper_path) {
             $exam_paper_path = $request->file('exam_paper_path')->store('public/photos');
         }
 
-        $class = Classs::where('class_level', $class_level)
-            ->where('class_number', $class_number)
-            ->firstOrFail();
+        $class_id = DB::table('classses')
+        ->where('classses.class_level',$class_level)
+        ->where('classses.class_number',$class_number)
+        ->value('classses.id');
 
-        $subject_name = $request->input('name');
 
-        $subject = subject::where('name', $subject_name)->firstOrFail();
+        $subject_id = DB::table('subjects')
+        ->where('subjects.name',$subject_name)
+        ->where('subjects.the_class',$class_level)
+        ->value('subjects.id');
 
-        $class_subject = class_subject::create([
-            'class_id' => $class->id,
-            'subject_id' => $subject->id,
-        ]);
+        $class_subject_id = DB::table('class_subjects')
+        ->where('class_subjects.class_id',$class_id)
+        ->where('class_subjects.subject_id',$subject_id)
+        ->value('class_subjects.id');
 
         $test = Test::create([
-            'class_subject_id' => $class_subject->id,
+            'class_subject_id' => $class_subject_id,
             'type' => $request->input('type'),
             'exam_paper_path' => $exam_paper_path,
         ]);
 
         return response()->json([
             'message' => 'Test created successfully',
-            'class' => $class,
+            'class level' => $class_level,
+            'class number' => $class_number,
             'test' => $test,
         ], 201);
     }
@@ -108,6 +117,51 @@ class TestController extends Controller
             return response()->json($validator->errors());
         }
 
+        $grade=DB::table('grades')
+        ->where('grades.student_id',$request->student_id)
+        ->where('grades.test_id',$request->test_id)
+        ->select('grades.*')
+        ->first();
+
+        if($grade){
+            return response('already exist');
+        }
+
+        $check_class1=DB::table('students')
+        ->where('students.id',$request->student_id)
+        ->value('students.class_id');
+
+        $check_class2=DB::table('tests')
+        ->where('tests.id',$request->test_id)
+        ->join('class_subjects','tests.class_subject_id','class_subjects.id')
+        ->value('class_subjects.class_id');
+
+
+        if($check_class1!=$check_class2){
+            return response('this studentd is not in the correct class');
+        }
+
+        $total_grade=DB::table('tests')
+        ->where('tests.id',$request->test_id)
+        ->join('class_subjects','class_subjects.id','tests.class_subject_id')
+        ->join('subjects','subjects.id','class_subjects.subject_id')
+        ->value('subjects.total_grade');
+
+        $grade_type=DB::table('tests')
+        ->where('tests.id',$request->test_id)
+        ->value('tests.type');
+
+        if($grade_type=='homework'||$grade_type=='oral_exam'||$grade_type=='quiz'){
+            $total_grade_by_type=0.2*$total_grade;
+        }
+
+        if($grade_type=='exam'){
+            $total_grade_by_type=0.4*$total_grade;
+        }
+
+        if ($request->grade>$total_grade_by_type){
+            return response('this grade is bigger than the total grade');
+        }
         $grade = grade::create([
             'student_id' => $request->student_id,
             'test_id' => $request->test_id,
@@ -116,35 +170,63 @@ class TestController extends Controller
 
         return response()->json([
             'grade' => $grade,
+            'total_grade'=>$total_grade_by_type,
+
         ]);
     }
-    public function show_grade($test_id)
+    public function show_grade_by_type($type)
     {
 
-        $grades = grade::where('test_id', $test_id)
-            ->with(['student' => function ($query) {
-                $query->select('id');
-            }])
-            ->get();
+        $user_id = Auth::id();
+        $student_id = DB::table('students')
+        ->where('students.user_id',$user_id)
+        ->value('students.id');
 
-        return response()->json($grades);
+        $grades_by_type= DB::table('grades')
+        ->where('grades.student_id',$student_id)
+        ->join('tests','tests.id','grades.test_id')
+        ->where('tests.type',$type)
+        ->select('grades.*')
+        ->get();
+
+        $avg_by_type= DB::table('grades')
+        ->where('grades.student_id',$student_id)
+        ->join('tests','tests.id','grades.test_id')
+        ->where('tests.type',$type)
+        ->avg('grades.grade');
+
+        return response([
+            'grades by type'=>$grades_by_type,
+            'avg_by_type'=>$avg_by_type
+        ]);
+
     }
-    public function show_grade_by_student($student_id)
-    {
 
+    public function show_the_total_grade(){
+        $user_id = Auth::id();
+        $student_id = DB::table('students')
+        ->where('students.user_id',$user_id)
+        ->value('students.id');
 
-        $grades = grade::where('student_id', $student_id)
-            ->with(['test' => function ($query) {
-                $query->select('id', 'type');
-            }])
-            ->get();
+        $type=['exam','quiz','homework','oral_exam'];
 
-        return $grades;
+        $sum=0;
+        for($i=0;$i<4;$i++){
+            $avg_by_type= DB::table('grades')
+            ->where('grades.student_id',$student_id)
+            ->join('tests','tests.id','grades.test_id')
+            ->where('tests.type',$type[$i])
+            ->avg('grades.grade');
+
+            $sum=$sum+$avg_by_type;
+        }
+        return response($sum);
+
     }
-    public function delete_grade($student_id)
+    public function delete_grade($grade_id)
     {
 
-        $grade = grade::where('student_id', $student_id)->first();
+        $grade = grade::where('id', $grade_id)->first();
 
         if (!$grade) {
 

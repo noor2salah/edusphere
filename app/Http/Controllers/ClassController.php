@@ -28,6 +28,17 @@ class ClassController extends Controller
         $request->validate([
             'class_level' => 'required|in:7,8,9',
         ]);
+        
+        $class=DB::table('classses')
+        ->where('classses.class_level',$request->class_level)
+        ->where('classses.class_number',$request->class_number)
+        ->select('classses.*')
+        ->get();
+
+        if(count($class)!=0){
+            return response('this class is already exist');
+        }
+        
         $class=classs::create([
             'class_level' => $request->class_level,
             'class_number' => $request->class_number,

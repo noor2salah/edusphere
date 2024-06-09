@@ -29,7 +29,7 @@ class AuthController extends Controller
 
 
 
-    public function VerfiyCode(Request $request)
+    public function generate_code(Request $request)
     {
         $email = $request->email;
         $password = $request->password;
@@ -153,8 +153,9 @@ class AuthController extends Controller
             'specialization' => 'required|string',
             'education' => 'required|string',
             'salary' => 'required',
-            'the_description'=>'required',
-            'photo_path'=>'required|image',
+            'description'=>'required|array',
+            'description.*.the_description'=>'required',
+            'description.*.photo_path'=>'nullable|image',
 
         ]);
 
@@ -170,10 +171,7 @@ class AuthController extends Controller
         }
 
 
-        if ($request->hasFile('photo_path')) {
-            //store in local storage
-            $photo_path = Storage::disk('public')->put('photos', $request->file('photo_path'));
-        }
+        
 
 
         $user= User::create([
@@ -199,20 +197,31 @@ class AuthController extends Controller
             'education' => $request->education,
             'about'=>$request->about
         ]);
-        $user['about'] = description_about_the_teacher::create([
-                'teacher_id'=>$user['other_info']->id,
-                'the_description'=>$request->the_description,
-                'photo_path'=>$photo_path,
-        ]);
-
-
-
+        $descriptions=[];
+        foreach ($request->description as $description_data) {
+            $photo_path = null;
+            
+            if (isset($description_data['photo_path']) && $description_data['photo_path']->isValid()) {
+                // Store the photo in local storage
+                $photo_path = Storage::disk('public')->put('photos', $description_data['photo_path']);
+            }
+        
+            $description = description_about_the_teacher::create([
+                'teacher_id' => $user['other_info']->id,
+                'the_description' => $description_data['the_description'],
+                'photo_path' => $photo_path,
+            ]);
+        
+            $descriptions[] = $description;
+        }
+        
         $user['token'] = $user->createToken('token')->accessToken;
         $teacher['Data'] = $user;
 
         return response()->json([
             'message' => 'register successfully',
             'teacher' => $teacher,
+            'description'=>$descriptions
 
 
         ]);

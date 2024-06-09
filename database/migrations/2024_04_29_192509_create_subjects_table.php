@@ -17,6 +17,7 @@ return new class extends Migration
             $table->bigIncrements('id');
             $table->string('name')->nullable();
             $table->enum('the_class',['7','8','9'] )->nullable();
+            $table->integer('total_grade')->nullable();
             $table->text('about_subject')->nullable();
             $table->string('book_path')->nullable();
 
