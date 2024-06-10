@@ -21,6 +21,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\Verficationcode;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Log;
 
 
 class AuthController extends Controller
@@ -29,34 +30,46 @@ class AuthController extends Controller
 
 
 
-    public function VerfiyCode(Request $request)
-    {
-        $email = $request->email;
-        $password = $request->password;
-        $code = mt_rand(10000, 99999);
+    public function VerifyCode(Request $request)
+{
+    $request->validate([
+        'email' => 'required|email',
+        'password' => 'required',
+    ]);
 
-        $user = User::whereEmail($email)->first();
-        if (!$user) {
-            return response()->json([
-                'message' => 'user not found',
-            ]);
-        }
-        $codeData = Verficationcode::create([
+    $email = $request->email;
+    $password = $request->password;
+    $code = mt_rand(10000, 99999);
 
-            'email' => $email,
-            'password' => $request->password,
-            'code' => $code,
-            'user_id' => $user->id,
-        ]);
-
-        //send email to user
-        Mail::to($request['email'])->send(new VerfiyCode($codeData['code'], $password));
+    $user = User::where('email', $email)->first();
 
 
         return response()->json([
-            'message' => trans('code is sent')
+            'message' => 'User not found',
+        ]);
+    
+
+    if (!Hash::check($password, $user->password)) {
+        return response()->json([
+            'message' => 'Invalid password',
         ]);
     }
+
+    $codeData = Verficationcode::create([
+        'email' => $email,
+        'code' => $code,
+        'password' => $password,
+        'user_id' => $user->id,
+    ]);
+
+    // Send email to user
+    Mail::to($request->email)->send(new VerfiyCode($codeData->code, $password));
+
+    return response()->json([
+        'message' => trans('Code has been sent'),
+    ]);
+}
+
     public function AddAccountStudent(Request $request)
     {
         $e = $request->all();
@@ -217,6 +230,7 @@ class AuthController extends Controller
 
         ]);
     }
+    /*
     public function AddAccounAdmin(Request $request)
     {
         $e = $request->all();
@@ -276,6 +290,7 @@ class AuthController extends Controller
 
         ]);
     }
+        */
     public function login(Request $request)
     {
         $verfiyCode = Verficationcode::query()->firstWhere('code', $request['code']);
@@ -462,6 +477,7 @@ class AuthController extends Controller
     //     $user->password = $password;
     //     $verfiyCode->password = $password;
     //     $user->save();
+
     //     $verfiyCode->save();
     //     //delete current code
     //     //$passwordReset->delete();
@@ -500,7 +516,7 @@ class AuthController extends Controller
     public function EditProfilestudent( Request $request)
     {
         $user_id = Auth::id();
-      
+
         $student = Student::where('user_id', $user_id)->first();
 
 
@@ -578,33 +594,30 @@ class AuthController extends Controller
         $profile = User::where('role','admin')->get();
         return response()->json($profile);
     }
-    public function EditprofileAdmin($id,Request $request)
+    public function EditprofileAdmin(Request $request)
     {
-        $admin = admin::find($id);
+            $admin = Auth::user();
 
-        if(!$admin)
-        {
-            return response()->json([
-                'message' => 'user not found',
-            ], 404);
-        }
-            $user = User::where('id', $admin->user_id)->first();
-        if(!$user)
-        {
-            return response()->json([
-                'message' => 'user not found',
-            ], 404);
-        }
-                $user->update($request->all());
-        if ($request->hasFile('profile_picture_path')) {
-            $profile_picture = $request->file('profile_picture_path');
-            $profile_picture_path = $profile_picture->store('photos', 'public');
-            $user->profile_picture_path = $profile_picture_path;
-        }
+            if (!$admin || $admin->role!= 'admin') {
+                return response()->json([
+                    'essage' => 'You are not an admin',
+                ], 403);
+            }
+            $user = User::where('id',$admin->user_id)->first();
+
+            $user->update($request->all());
+
+            if ($request->hasFile('profile_picture_path')) {
+                $profile_picture = $request->file('profile_picture_path');
+                $profile_picture_path = $profile_picture->store('photos', 'public');
+                $admin->profile_picture_path = $profile_picture_path;
+            }
+
             $user->save();
+
             return response()->json([
-                'message'=>'user update successfully',
-                'user'=>$user,
+                'message' => 'Profile updated successfully',
+                'admin' => $user,
             ]);
-    }
+        }
 }
