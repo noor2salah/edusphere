@@ -21,7 +21,7 @@ class SubjectsController extends Controller
             'the_class' => 'required|integer',
             'about_subject' => 'required|string',
             'total_grade'=>'required|integer',
-            'book_path' => 'required|mimes:pdf',
+            'book_path' => 'required|mimes:jpg,png,jpeg',
             'photos'=>'required|array',
             'photos.*.photo_for_subject'=>'nullable|image',
             'unit_number' => 'required|integer',
