@@ -10,7 +10,7 @@ use Illuminate\Database\Seeder;
 
 class CreateAdminSeeder extends Seeder
 {
-
+//this is seeder for create admin
     public function run(): void
     {
 
