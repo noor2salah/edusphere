@@ -150,15 +150,18 @@ class SubjectsController extends Controller
 
     }
 
-    public function show_subjects_of_the_class($the_class)
+    public function show_subjects_of_the_class(Request $request)
     {
+        $the_class=$request->input('class_level');
         $subjects = DB::table('subjects')
             ->where('the_class', $the_class)
             ->get();
         return response()->json($subjects, 200);
     }
-    public function show_subject($id)
+    public function show_subject(Request $request)
     {
+        $id=$request->input('subject_id');
+
         $subject = DB::table('subjects')
             ->where('subjects.id', $id)
             ->join('subject_units', 'subject_units.subject_id', '=', 'subjects.id')
