@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\photos_about_subject;
 use App\Models\subject;
 use App\Models\class_subject;
 use App\Models\subject_units;
@@ -19,7 +20,10 @@ class SubjectsController extends Controller
             'name' => 'required|string',
             'the_class' => 'required|integer',
             'about_subject' => 'required|string',
+            'total_grade'=>'required|integer',
             'book_path' => 'required|mimes:pdf',
+            'photos'=>'required|array',
+            'photos.*.photo_for_subject'=>'nullable|image',
             'unit_number' => 'required|integer',
             'title' => 'required|string',
             'description' => 'required|string',
@@ -38,10 +42,22 @@ class SubjectsController extends Controller
         $request->validate([
             'the_class' => 'required|in:7,8,9',
         ]);
+
+        $subject=DB::table('subjects')
+        ->where('subjects.name',$request->name)
+        ->where('subjects.the_class',$request->the_class)
+        ->select('subjects.*')
+        ->get();
+
+        if(count($subject)!=0){
+
+            return response('this subject already exist');
+        }
         $subject = subject::create([
             'name' => $request->name,
             'the_class' => $request->the_class,
             'about_subject' => $request->about_subject,
+            'total_grade'=>$request->total_grade,
             'book_path' => $book,
         ]);
         $subject_units = subject_units::create([
@@ -51,7 +67,22 @@ class SubjectsController extends Controller
             'description' => $request->description,
             'photo_path' => $photo_path
         ]);
-        return response()->json(['the subject added',$subject,$subject_units], 200);
+
+        $photos_about_subject=[];
+        foreach ($request->photos as $the_photo) {
+
+            if (isset($the_photo['photo_for_subject']) && $the_photo['photo_for_subject']->isValid()) {
+                // Store the photo in local storage
+                $photo_path = Storage::disk('public')->put('photos', $the_photo['photo_for_subject']);
+            }
+
+            $photo_about_subject = photos_about_subject::create([
+                'subject_id'=>$subject->id,
+                'photo_path'=>$photo_path,
+            ]);
+            $photos_about_subject[] = $photo_about_subject;
+        }
+        return response()->json(['the subject added',$subject,$subject_units,$photos_about_subject], 200);
     }
 
     public function store_class_subject(Request $request){
@@ -112,7 +143,14 @@ class SubjectsController extends Controller
     }
 
 
-    public function show_class_subjects($the_class)
+    public function show_the_schedule(){
+
+    }
+    public function show_all_the_schedules(){
+
+    }
+
+    public function show_subjects_of_the_class($the_class)
     {
         $subjects = DB::table('subjects')
             ->where('the_class', $the_class)
@@ -124,7 +162,8 @@ class SubjectsController extends Controller
         $subject = DB::table('subjects')
             ->where('subjects.id', $id)
             ->join('subject_units', 'subject_units.subject_id', '=', 'subjects.id')
-            ->select('subjects.*', 'subject_units.*')
+            ->join('photos_about_subjects','photos_about_subjects.subject_id','subjects.id')
+            ->select('subjects.*', 'subject_units.*','photos_about_subjects.*')
             ->get();
         return response()->json($subject, 200);
     }

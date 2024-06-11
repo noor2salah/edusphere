@@ -8,7 +8,6 @@ use App\Models\classs;
 
 class advertisement extends Model
 {
-    //
     use HasFactory;
     protected $fillable = [
         'id',

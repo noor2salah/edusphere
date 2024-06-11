@@ -12,46 +12,12 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 class TeachersListController extends Controller
 {
-    public function show_7th_teachers(){
+    public function show_teachers_by_class($id){
         $teachers = DB::table('classses')
         ->join('class_subjects','classses.id','=','class_subjects.class_id')
         ->join('teachers','teachers.id','=','class_subjects.teacher_id')
         ->join('users','users.id','=','teachers.user_id')
-        ->where('classses.class_level','=','7')
-        ->select('users.*','teachers.*')
-        ->distinct()
-        ->get();
-
-        if(count($teachers)==0){
-            return response('there is no teachers');
-        }
-
-        return response($teachers,200);
-    }
-
-    public function show_8th_teachers(){
-        $teachers = DB::table('classses')
-        ->join('class_subjects','classses.id','=','class_subjects.class_id')
-        ->join('teachers','teachers.id','=','class_subjects.teacher_id')
-        ->join('users','users.id','=','teachers.user_id')
-        ->where('classses.class_level','=','8')
-        ->select('users.*','teachers.*')
-        ->distinct()
-        ->get();
-
-        if(count($teachers)==0){
-            return response('there is no teachers');
-        }
-
-        return response($teachers,200);
-    }
-
-    public function show_9th_teachers(){
-        $teachers = DB::table('classses')
-        ->join('class_subjects','classses.id','=','class_subjects.class_id')
-        ->join('teachers','teachers.id','=','class_subjects.teacher_id')
-        ->join('users','users.id','=','teachers.user_id')
-        ->where('classses.class_level','=','9')
+        ->where('classses.class_level','=',$id)
         ->select('users.*','teachers.*')
         ->distinct()
         ->get();
@@ -78,8 +44,10 @@ class TeachersListController extends Controller
     }
     public function add_to_favorite($id){
         $teacher = teacher::find($id);
+        $user_as_teacher=user::where('users.id',$teacher->user_id)
+        ->select('users.*')
+        ->get();
         $user_id = Auth::id();
-        $user=user::find($user_id);
 
         $student_id = DB::table('students')
         ->where('students.user_id',$user_id)
@@ -101,7 +69,7 @@ class TeachersListController extends Controller
             'student_id' => $student_id
         ]);
 
-        return response([$fav_teacher,$teacher,$user],200);
+        return response([$fav_teacher,$teacher,$user_as_teacher],200);
 
     }
 

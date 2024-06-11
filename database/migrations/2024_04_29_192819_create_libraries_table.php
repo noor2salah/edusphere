@@ -17,6 +17,7 @@ return new class extends Migration
             $table->bigIncrements('id');
             $table->string('book_name')->nullable();
             $table->string('book_path')->nullable();
+        
             $table->enum('type',['educational','entertainment']);
 
             $table->timestamps();

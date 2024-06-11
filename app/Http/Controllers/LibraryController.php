@@ -9,22 +9,18 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use App\Models\library;
+use Illuminate\Support\Facades\Storage;
+
 
 class LibraryController extends Controller
 
 {
-    /*
-    public function index()
-    {
-        $library = library::all();
-        return response()->json($library);
-    }
-    */
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(),[
             'book_name' =>'required|string',
             'book_path'=>'required|mimes:pdf',
+            'photo_path'=>'nullable|image|max:2048',
             'type' =>'required|string',
 
         ]);
@@ -36,9 +32,22 @@ class LibraryController extends Controller
         {
             $book = $request->file('book_path')->store('books');
         }
+        if ($request->hasFile('photo_path')) {
+            //store in local storage
+            $photo_path = Storage::disk('public')->put('photos', $request->file('photo_path'));
+        }
+        $book_name=DB::table('libraries')
+        ->where('libraries.book_name',$request->book_name)
+        ->value('libraries.book_name');
+
+        if($book_name){
+            return response('this book is already in the library');
+        }
+
         $library=library::create([
             'book_name' => $request->book_name,
             'book_path' => $book,
+            'photo_path'=>$photo_path,
             'type' => $request->type,
         ]);
         return response()->json($library,200);
@@ -85,7 +94,7 @@ class LibraryController extends Controller
     public function remove_from_favorite($id){
         $book=favorite_book::find($id);
         if(!$book){
-            return response('this book does not exist ,please try again',403);
+            return response('this book does not exist ,please try again',404);
         }
         $user_id = Auth::id();
         $student_id = DB::table('students')

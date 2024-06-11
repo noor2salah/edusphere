@@ -14,6 +14,7 @@ class library extends Model
         'id',
         'book_name',
         'book_path',
+        'photo_path',
         'type'
     ];
     public static $rules = [
