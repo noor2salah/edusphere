@@ -69,10 +69,10 @@ Route::post('store_book', [LibraryController::class, 'store']);
 
 //favorite api's
 Route::group(["middleware" => "auth:api"], function () {
-    Route::get('add_to_fav/{id}', [LibraryController::class, 'add_to_favorite']);
+    Route::post('add_to_fav', [LibraryController::class, 'add_to_favorite']);
     Route::get('show_fav_books', [LibraryController::class, 'show_favorite_books']);
     Route::delete('remove_from_fav/{id}', [LibraryController::class, 'remove_from_favorite']);
-    Route::get('add_to_favorite/{id}', [TeachersListController::class, 'add_to_favorite']);
+    Route::post('add_to_favorite', [TeachersListController::class, 'add_to_favorite']);
     Route::delete('remove_from_favorite/{id}', [TeachersListController::class, 'remove_from_favorite']);
     Route::get('show_favorite_teachers', [TeachersListController::class, 'show_favorite_teachers']);
 

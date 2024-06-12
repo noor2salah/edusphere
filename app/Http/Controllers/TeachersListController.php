@@ -47,7 +47,8 @@ class TeachersListController extends Controller
         return response($about,200);
 
     }
-    public function add_to_favorite($id){
+    public function add_to_favorite(Request $request){
+        $id=$request->input('id');
         $teacher = teacher::find($id);
         $user_as_teacher=user::where('users.id',$teacher->user_id)
         ->select('users.*')

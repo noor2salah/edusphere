@@ -66,7 +66,8 @@ class LibraryController extends Controller
 
     }
 
-    public function add_to_favorite($id){
+    public function add_to_favorite(Request $request){
+        $id=$request->input('id');
         $book=library::find($id);
         if(!$book){
             return response('this book does not exist ,please try again',403);
