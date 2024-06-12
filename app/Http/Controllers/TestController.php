@@ -74,6 +74,10 @@ class TestController extends Controller
         ->where('class_subjects.subject_id',$subject_id)
         ->value('class_subjects.id');
 
+        if(!$class_subject_id){
+            return response('this subject is not for this class');
+        }
+
         $test = Test::create([
             'class_subject_id' => $class_subject_id,
             'type' => $request->input('type'),

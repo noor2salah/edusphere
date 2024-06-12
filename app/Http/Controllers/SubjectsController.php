@@ -21,13 +21,14 @@ class SubjectsController extends Controller
             'the_class' => 'required|integer',
             'about_subject' => 'required|string',
             'total_grade'=>'required|integer',
-            'book_path' => 'required|mimes:jpg,png,jpeg',
+            'book_path' => 'required|mimes:pdf',
             'photos'=>'required|array',
             'photos.*.photo_for_subject'=>'nullable|image',
-            'unit_number' => 'required|integer',
-            'title' => 'required|string',
-            'description' => 'required|string',
-            'photo_path' => 'nullable|image|max:2048'
+            'units'=>'required|array',
+            'units.*.unit_number' => 'required|integer',
+            'units.*.title' => 'required|string',
+            'units.*.description' => 'required|string',
+            'units.*.photo_path' => 'nullable|image|max:2048'
 
         ]);
         if ($validator->fails()) {
@@ -36,9 +37,7 @@ class SubjectsController extends Controller
         if ($request->hasFile('book_path')) {
             $book = $request->file('book_path')->store('books');
         }
-        if ($request->hasFile('photo_path')) {
-            $photo_path = $request->file('photo_path')->store('photos');
-        }
+
         $request->validate([
             'the_class' => 'required|in:7,8,9',
         ]);
@@ -60,14 +59,24 @@ class SubjectsController extends Controller
             'total_grade'=>$request->total_grade,
             'book_path' => $book,
         ]);
-        $subject_units = subject_units::create([
-            'subject_id' => $subject->id,
-            'unit_number' => $request->unit_number,
-            'title' => $request->title,
-            'description' => $request->description,
-            'photo_path' => $photo_path
-        ]);
 
+        $subject_units=[];
+        foreach ($request->units as $unit_data) {
+
+            if (isset($unit_data['photo_path']) && $unit_data['photo_path']->isValid()) {
+                // Store the photo in local storage
+                $photo_path = Storage::disk('public')->put('photos', $unit_data['photo_path']);
+            }
+
+            $subject_unit = subject_units::create([
+                'subject_id' => $subject->id,
+                'unit_number' => $unit_data['unit_number'],
+                'title' => $unit_data['title'],
+                'description' => $unit_data['description'],
+                'photo_path' => $photo_path
+            ]);
+            $subject_units[] = $subject_unit;
+        }
         $photos_about_subject=[];
         foreach ($request->photos as $the_photo) {
 
@@ -150,21 +159,35 @@ class SubjectsController extends Controller
 
     }
 
-    public function show_subjects_of_the_class($the_class)
+    public function show_subjects_of_the_class(Request $request)
     {
+        $the_class=$request->input('class_level');
         $subjects = DB::table('subjects')
             ->where('the_class', $the_class)
             ->get();
         return response()->json($subjects, 200);
     }
-    public function show_subject($id)
+    public function show_subject(Request $request)
     {
+        $id=$request->input('subject_id');
+
         $subject = DB::table('subjects')
             ->where('subjects.id', $id)
-            ->join('subject_units', 'subject_units.subject_id', '=', 'subjects.id')
-            ->join('photos_about_subjects','photos_about_subjects.subject_id','subjects.id')
-            ->select('subjects.*', 'subject_units.*','photos_about_subjects.*')
+            ->select('subjects.*')
             ->get();
-        return response()->json($subject, 200);
+            
+        $subject_units = DB::table('subjects')
+        ->where('subjects.id', $id)
+        ->join('subject_units', 'subject_units.subject_id', '=', 'subjects.id')
+        ->select('subject_units.*')
+        ->get();
+    
+        $subject_photos = DB::table('subjects')
+            ->where('subjects.id', $id)
+            ->join('photos_about_subjects','photos_about_subjects.subject_id','subjects.id')
+            ->select('photos_about_subjects.*')
+            ->get();
+        
+        return response()->json([$subject,$subject_units,$subject_photos], 200);
     }
 }

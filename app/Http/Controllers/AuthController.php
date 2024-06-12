@@ -28,8 +28,6 @@ class AuthController extends Controller
 {
     protected $VerfiyCode;
 
-
-
     public function VerifyCode(Request $request)
 {
     $request->validate([
@@ -44,9 +42,11 @@ class AuthController extends Controller
     $user = User::where('email', $email)->first();
 
 
+    if (!$user) {
         return response()->json([
             'message' => 'User not found',
         ]);
+    }
     
 
     if (!Hash::check($password, $user->password)) {
@@ -70,227 +70,194 @@ class AuthController extends Controller
     ]);
 }
 
-    public function AddAccountStudent(Request $request)
-    {
-        $e = $request->all();
-        $validator = validator::make($e, [
-            'first_name' => 'required|string',
-            'last_name' => 'required|string',
-            'birthdate' => 'required|date',
-            'email' => 'required|string|email|unique:users',
-            'password' => 'required|string',
-            'phone' => 'required|string|unique:users',
-            'address' => 'required|string',
-            'profile_picture_path' => 'nullable|image|max:2048',
-            'gender' => 'required',
-            'role' => 'required|string',
-            'class_level' => 'required',
-            'class_number'=>'required',
-            'enrollment_date' => 'required|date',
-            'parent_name' => 'required|string',
-            'parent_phone' => 'required|string|unique:students',
-            'parent_email' => 'required|email|unique:students',
+public function AddAccountStudent(Request $request)
+{
+    $e = $request->all();
+    $validator = Validator::make($e, [
+        'first_name' => 'required|string',
+        'last_name' => 'required|string',
+        'birthdate' => 'required|date',
+        'email' => 'required|string|email|unique:users',
+        'password' => 'required|string',
+        'phone' => 'required|string|unique:users',
+        'address' => 'required|string',
+        'profile_picture_path' => 'nullable|image|max:2048',
+        'gender' => 'required',
+        'role' => 'required|string',
+        'class_level' => 'required',
+        'class_number' => 'required',
+        'enrollment_date' => 'required|date',
+        'parent_name' => 'required|string',
+        'parent_phone' => 'required|string|unique:students',
+        'parent_email' => 'required|email|unique:students',
+    ]);
 
-        ]);
+    if ($validator->fails()) {
+        return response()->json($validator->errors(), 422);
+    }
 
-        if ($validator->fails()) {
-            return response()->json($validator->errors());
-        }
+    $class_level = $request->input('class_level');
+    $class_number = $request->input('class_number');
+    $profile_picture_path = null;
 
-        $class_level = $request->input('class_level');
-        $class_number = $request->input('class_number');
+    if ($request->hasFile('profile_picture_path')) {
+        $profile_picture_path = Storage::disk('public')->put('photos', $request->file('profile_picture_path'));
+    }
 
-        if ($request->hasFile('profile_picture_path')) {
-            //store in local storage
-            $profile_picture_path = Storage::disk('public')->put('photos', $request->file('profile_picture_path'));
-        }
+    // Check if the class exists
+    $class = Classs::where('class_level', $class_level)
+        ->where('class_number', $class_number)
+        ->firstOrFail();
 
+    try {
+        DB::beginTransaction();
 
-        $user= User::create([
+        // Create user
+        $user = User::create([
             'first_name' => $request->first_name,
             'last_name' => $request->last_name,
             'birthdate' => $request->birthdate,
             'email' => $request->email,
-            'password' => Hash::make($request['password']),
+            'password' => Hash::make($request->password),
             'phone' => $request->phone,
             'profile_picture_path' => $profile_picture_path,
             'address' => $request->address,
             'role' => $request->role,
             'gender' => $request->gender
-
         ]);
-        $class = Classs::where('class_level', $class_level)
-        ->where('class_number', $class_number)
-        ->firstOrFail();
-        $student= student::create([
-            'user_id'=>$user->id,
+
+        // Create student
+        $student = Student::create([
+            'user_id' => $user->id,
             'class_id' => $class->id,
             'enrollment_date' => $request->enrollment_date,
             'parent_name' => $request->parent_name,
             'parent_phone' => $request->parent_phone,
             'parent_email' => $request->parent_email,
-
         ]);
+
         Event::dispatch(new StudentCreated($class));
 
-
+        DB::commit();
 
         $student1['token'] = $user->createToken('token')->accessToken;
         $student1['Data'] = $student;
-        $student1['class']= $class;
+        $student1['class'] = $class;
 
         return response()->json([
-            'message' => 'register successfully',
+            'message' => 'Register successfully',
             'student' => $student1,
-            'user'=>$user,
-
+            'user' => $user,
         ]);
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return response()->json([
+            'message' => 'Failed to register student',
+            'error' => $e->getMessage(),
+        ], 500);
     }
-    public function AddAccountTeacher(Request $request)
-    {
-        $e = $request->all();
-        $validator = validator::make($e, [
-            'first_name' => 'required|string',
-            'last_name' => 'required|string',
-            'birthdate' => 'required|date',
-            'email' => 'required|string|email|unique:users',
-            'password' => 'required|string',
-            'phone' => 'required|string|unique:users',
-            'address' => 'required|string',
-            'profile_picture_path' => 'nullable|image|max:2048',
-            'gender' => 'required',
-            'role' => 'required|string',
-            'about' => 'required',
-            'rate' => 'required|numeric',
-            'hire_date' => 'required|date',
-            'specialization' => 'required|string',
-            'education' => 'required|string',
-            'salary' => 'required',
-            'the_description'=>'required',
-            'photo_path'=>'required|image',
+}
+public function AddAccountTeacher(Request $request)
+{
+    $e = $request->all();
+    $validator = Validator::make($e, [
+        'first_name' => 'required|string',
+        'last_name' => 'required|string',
+        'birthdate' => 'required|date',
+        'email' => 'required|string|email|unique:users',
+        'password' => 'required|string',
+        'phone' => 'required|string|unique:users',
+        'address' => 'required|string',
+        'profile_picture_path' => 'nullable|image|max:2048',
+        'gender' => 'required',
+        'role' => 'required|string',
+        'about' => 'required',
+        'rate' => 'required|numeric',
+        'hire_date' => 'required|date',
+        'specialization' => 'required|string',
+        'education' => 'required|string',
+        'salary' => 'required',
+        'descriptions'=>'required|array',
+        'descriptions.*.the_description' => 'required',
+        'descriptions.*.photo_path' => 'nullable|image',
+    ]);
 
-        ]);
+    if ($validator->fails()) {
+        return response()->json($validator->errors(), 422);
+    }
 
-        if ($validator->fails()) {
-            return response()->json($validator->errors());
-        }
+    $profile_picture_path = null;
 
+    if ($request->hasFile('profile_picture_path')) {
+        $profile_picture_path = Storage::disk('public')->put('photos', $request->file('profile_picture_path'));
+    }
 
+    try {
+        DB::beginTransaction();
 
-        if ($request->hasFile('profile_picture_path')) {
-            //store in local storage
-            $profile_picture_path = Storage::disk('public')->put('photos', $request->file('profile_picture_path'));
-        }
-
-
-        if ($request->hasFile('photo_path')) {
-            //store in local storage
-            $photo_path = Storage::disk('public')->put('photos', $request->file('photo_path'));
-        }
-
-
-        $user= User::create([
+        // Create user
+        $user = User::create([
             'first_name' => $request->first_name,
             'last_name' => $request->last_name,
             'birthdate' => $request->birthdate,
             'email' => $request->email,
-            'password' => Hash::make($request['password']),
+            'password' => Hash::make($request->password),
             'phone' => $request->phone,
             'profile_picture_path' => $profile_picture_path,
             'address' => $request->address,
             'role' => $request->role,
             'gender' => $request->gender
-
         ]);
 
-        $user['other_info'] = teacher::create([
-            'user_id'=>$user->id,
+        // Create teacher
+        $teacher = Teacher::create([
+            'user_id' => $user->id,
             'rate' => $request->rate,
             'hire_date' => $request->hire_date,
             'specialization' => $request->specialization,
             'salary' => $request->salary,
             'education' => $request->education,
-            'about'=>$request->about
-        ]);
-        $user['about'] = description_about_the_teacher::create([
-                'teacher_id'=>$user['other_info']->id,
-                'the_description'=>$request->the_description,
-                'photo_path'=>$photo_path,
+            'about' => $request->about
         ]);
 
+        
+        $descriptions=[];
+        foreach ($request->descriptions as $description_data) {
 
+            $photo_path = null;
+
+            if (isset($description_data['photo_path']) && $description_data['photo_path']->isValid()) {
+                // Store the photo in local storage
+                $photo_path = Storage::disk('public')->put('photos', $description_data['photo_path']);
+            }
+
+            $description = description_about_the_teacher::create([
+                'teacher_id' => $teacher->id,
+                'the_description' => $description_data['the_description'],
+                'photo_path' => $photo_path,
+            ]);
+            $descriptions[] = $description;
+        }        
+
+        DB::commit();
 
         $user['token'] = $user->createToken('token')->accessToken;
         $teacher['Data'] = $user;
 
         return response()->json([
-            'message' => 'register successfully',
+            'message' => 'Register successfully',
             'teacher' => $teacher,
-
-
+            'description'=>$descriptions
         ]);
-    }
-    /*
-    public function AddAccounAdmin(Request $request)
-    {
-        $e = $request->all();
-        $validator = validator::make($e, [
-            'first_name' => 'required|string',
-            'last_name' => 'required|string',
-            'birthdate' => 'required|date',
-            'email' => 'required|string|email|unique:users',
-            'password' => 'required|string',
-            'phone' => 'required|string|unique:users',
-            'address' => 'required|string',
-            'profile_picture_path' => 'nullable|image|max:2048',
-            'role' => 'required|string',
-            'gender' => 'required|string',
-        ]);
-
-
-        if ($validator->fails()) {
-            return response()->json($validator->errors());
-        }
-
-
-        if ($request->hasFile('profile_picture_path')) {
-            //store in public
-            //  $profile_picture_path =$request->file('profile_picture_path')->store('public');
-
-            //store in local storage
-            $profile_picture_path = Storage::disk('public')->put('photos', $request->file('profile_picture_path'));
-        }
-
-        $user = User::create([
-
-            'first_name' => $request->first_name,
-            'last_name' => $request->last_name,
-            'birthdate' => $request->birthdate,
-            'email' => $request->email,
-            'password' => Hash::make($request['password']),
-            'phone' => $request->phone,
-            'address' => $request->address,
-            'profile_picture_path' => $profile_picture_path,
-            'role' => $request->role,
-            'gender' => $request->gender,
-        ]);
-
-        $user['admin'] = admin::create([
-            'user_id'=>$user->id,
-        ]);
-
-
-        $Admin['token'] = $user->createToken('token')->accessToken;
-        $Admin['Data'] = $user;
+    } 
+    catch (\Exception $e) {
+        DB::rollBack();
         return response()->json([
-            'message' => 'register successfully',
-
-            'Admin'=>$Admin,
-
-
-        ]);
+            'message' => 'Failed to register teacher',
+            'error' => $e->getMessage(),
+        ], 500);
     }
-        */
+}
     public function login(Request $request)
     {
         $verfiyCode = Verficationcode::query()->firstWhere('code', $request['code']);

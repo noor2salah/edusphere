@@ -53,7 +53,8 @@ Route::group(["middleware" => "auth:api"], function () {
 //advertisements api's
 Route::post('StoreAdvertisements', [AdvertisementController::class, 'store']);
 Route::get('Advertisements', [AdvertisementController::class, 'index']);
-Route::get('Advertisement/{id}', [AdvertisementController::class, 'show']);
+Route::post('Advertisement', [AdvertisementController::class, 'show']);
+Route::post('show_all_by_class', [AdvertisementController::class, 'show_all_by_class']);
 Route::delete('destroy/{id}', [AdvertisementController::class, 'destroy']);
 Route::get('search/{title}', [AdvertisementController::class, 'SearchAdvertisement']);
 
@@ -81,8 +82,8 @@ Route::group(["middleware" => "auth:api"], function () {
 Route::get('show_class', [ClassController::class, 'show_all_classes']);
 Route::delete('class/{id}', [ClassController::class, 'detete_class']);
 Route::get('showStudentsByClass/{id}', [ClassController::class, 'showStudentsByClass']);
-Route::get('show_subjects_of_the_class/{the_class}', [SubjectsController::class, 'show_class_subjects']);
-Route::get('show_subject/{id}', [SubjectsController::class, 'show_subject']);
+Route::post('show_subjects_of_the_class', [SubjectsController::class, 'show_subjects_of_the_class']);
+Route::post('show_subject', [SubjectsController::class, 'show_subject']);
 Route::post('store', [ClassController::class, 'store']);
 Route::post('store_subject', [SubjectsController::class, 'store_subject']);
 Route::post('store_class_subject', [SubjectsController::class, 'store_class_subject']);
@@ -110,8 +111,8 @@ Route::delete('delete_grade/{student_id}', [TestController::class, 'delete_grade
 
 
 //teacher list Api's
-Route::get('show_teachers_by_class/{id}', [TeachersListController::class, 'show_teachers_by_class']);
-Route::get('show_about_teacher/{id}', [TeachersListController::class, 'show_about_teacher']);
+Route::post('show_teachers_by_class', [TeachersListController::class, 'show_teachers_by_class']);
+Route::post('show_about_teacher', [TeachersListController::class, 'show_about_teacher']);
 
 //task api's
 Route::post('store_task',[TaskController::class,'store_task']);
