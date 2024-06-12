@@ -28,7 +28,7 @@ class AuthController extends Controller
 {
     protected $VerfiyCode;
 
-    public function VerifyCode(Request $request)
+    public function generate_code(Request $request)
 {
     $request->validate([
         'email' => 'required|email',

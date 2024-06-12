@@ -31,12 +31,13 @@ class TestController extends Controller
 
         return response()->json($tests);
     }
-    public function show_test_by_class_level($class_level)
+    public function show_test_by_class_level(Request $request)
     {
 
+        $class_level=$request->input('class_level');
         $tests = Test::whereHas('class_subject', function ($query) use ($class_level) {
             $query->whereHas('class', function ($query) use ($class_level) {
-                $query->where('class_level', $class_level);
+            $query->where('class_level', $class_level);
             });
         })->with(['class_subject' => function ($query) {
             $query->select('class_id', 'subject_id')->with(['class' => function ($query) {
@@ -177,9 +178,10 @@ class TestController extends Controller
 
         ]);
     }
-    public function show_grade_by_type($type)
+    public function show_grade_by_type(Request $request)
     {
 
+        $type=$request->input('type');
         $user_id = Auth::id();
         $student_id = DB::table('students')
         ->where('students.user_id',$user_id)
