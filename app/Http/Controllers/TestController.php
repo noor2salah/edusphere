@@ -70,10 +70,10 @@ class TestController extends Controller
         ->where('subjects.the_class',$class_level)
         ->value('subjects.id');
 
-        $class_subject_id = DB::table('class_subjects')
-        ->where('class_subjects.class_id',$class_id)
-        ->where('class_subjects.subject_id',$subject_id)
-        ->value('class_subjects.id');
+        $class_subject_id = class_subject::query()
+        ->where('class_id','=',$class_id)
+        ->where('subject_id','=',$subject_id)
+        ->first()?->id;
 
         if(!$class_subject_id){
             return response('this subject is not for this class');

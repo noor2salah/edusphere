@@ -13,7 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
 class SubjectsController extends Controller
-{
+{//
     public function store_subject(Request $request)
     {
         $validator = Validator::make($request->all(), [
