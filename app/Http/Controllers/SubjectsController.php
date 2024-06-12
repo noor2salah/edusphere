@@ -188,6 +188,10 @@ class SubjectsController extends Controller
             ->select('photos_about_subjects.*')
             ->get();
         
-        return response()->json([$subject,$subject_units,$subject_photos], 200);
+        return response()->json([
+            'the subject'=>$subject,
+            'units'=>$subject_units,
+            'photos'=>$subject_photos
+        ], 200);
     }
 }

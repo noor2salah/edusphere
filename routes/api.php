@@ -93,12 +93,12 @@ Route::post('EditClass/{id}', [ClassController::class, 'EditClass']);
 
 //test api's
 
-Route::get('show_test_by_class_level/{class_level}', [TestController::class, 'show_test_by_class_level']);
+Route::post('show_test_by_class_level', [TestController::class, 'show_test_by_class_level']);
 Route::get('show', [TestController::class, 'index']);
 
 Route::group(["middleware" => "auth:api"], function () {
     
-    Route::get('show_grade_by_type/{type}', [TestController::class, 'show_grade_by_type']);
+    Route::post('show_grade_by_type', [TestController::class, 'show_grade_by_type']);
     Route::get('show_the_total_grade', [TestController::class, 'show_the_total_grade']);
 
 });
