@@ -182,6 +182,7 @@ class TestController extends Controller
     {
 
         $type=$request->input('type');
+        $subject_name=$request->input('subject_name');
         $user_id = Auth::id();
         $student_id = DB::table('students')
         ->where('students.user_id',$user_id)
@@ -190,19 +191,15 @@ class TestController extends Controller
         $grades_by_type= DB::table('grades')
         ->where('grades.student_id',$student_id)
         ->join('tests','tests.id','grades.test_id')
+        ->join('class_subjects','class_subjects.id','tests.class_subject_id')
+        ->join('subjects','subjects.id','class_subjects.subject_id')
+        ->where('subjects.name',$subject_name)
         ->where('tests.type',$type)
-        ->select('grades.*')
+        ->select('grades.*','tests.*')
         ->get();
 
-        $avg_by_type= DB::table('grades')
-        ->where('grades.student_id',$student_id)
-        ->join('tests','tests.id','grades.test_id')
-        ->where('tests.type',$type)
-        ->avg('grades.grade');
-
         return response([
-            'grades by type'=>$grades_by_type,
-            'avg_by_type'=>$avg_by_type
+            'grades'=>$grades_by_type
         ]);
 
     }
@@ -213,19 +210,54 @@ class TestController extends Controller
         ->where('students.user_id',$user_id)
         ->value('students.id');
 
-        $type=['exam','quiz','homework','oral_exam'];
+        $types=['exam','quiz','homework','oral_exam'];
 
-        $sum=0;
-        for($i=0;$i<4;$i++){
-            $avg_by_type= DB::table('grades')
-            ->where('grades.student_id',$student_id)
-            ->join('tests','tests.id','grades.test_id')
-            ->where('tests.type',$type[$i])
-            ->avg('grades.grade');
+        $avg_by_type=[];
+        $subjects = Subject::all();
 
-            $sum=$sum+$avg_by_type;
+        // Get all grades with related tables in a single query
+        $grades = DB::table('grades')
+            ->where('grades.student_id', $student_id)
+            ->join('tests', 'tests.id', '=', 'grades.test_id')
+            ->join('class_subjects', 'class_subjects.id', '=', 'tests.class_subject_id')
+            ->join('subjects', 'subjects.id', '=', 'class_subjects.subject_id')
+            ->select('subjects.name as subject_name', 'tests.type as test_type', 'grades.grade')
+            ->get();
+
+        // Group grades by subject and type
+        $groupedGrades = [];
+        foreach ($grades as $grade) {
+            $groupedGrades[$grade->subject_name][$grade->test_type][] = $grade->grade;
         }
-        return response($sum);
+
+        // Calculate the averages
+        foreach ($subjects as $subject) {
+            $subjectName = $subject->name;
+            $total_garde[$subjectName]=$subject->total_grade;
+            foreach ($types as $type) {
+                
+                $avg_by_type[$subjectName][$type] = isset($groupedGrades[$subjectName][$type])
+                    ? array_sum($groupedGrades[$subjectName][$type]) / count($groupedGrades[$subjectName][$type])
+                    : null; // or 0 or another default value
+                    $weight = 0;
+                    if (in_array($type, ['quiz', 'oral_exam', 'homework'])) {
+                        $weight = 0.2;
+                    } elseif ($type == 'exam') {
+                        $weight = 0.4;
+                    }
+        
+                    // Calculate the total grade by type with the weight
+                    $total_grade_by_type[$subjectName][$type] = $total_garde[$subjectName] * $weight;
+                
+            }
+        }
+        
+        return response([
+            'the_grades_for_this_student'=>$avg_by_type,
+            'total_grade_ for_subjects'=>$total_garde,
+            'total_grade_ by_type'=>$total_grade_by_type
+
+    ]);
 
     }
     public function delete_grade($grade_id)
