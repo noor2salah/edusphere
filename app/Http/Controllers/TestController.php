@@ -254,8 +254,8 @@ class TestController extends Controller
         
         return response([
             'the_grades_for_this_student'=>$avg_by_type,
-            'total_grade_ for_subjects'=>$total_garde,
-            'total_grade_ by_type'=>$total_grade_by_type
+            'total_grade_for_subjects'=>$total_garde,
+            'total_grade_by_type'=>$total_grade_by_type
 
     ]);
 
