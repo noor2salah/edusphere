@@ -47,7 +47,7 @@ class AuthController extends Controller
         return response()->json([
             'message' => 'User not found',
         ]);
-    
+
 
     if (!Hash::check($password, $user->password)) {
         return response()->json([
@@ -101,9 +101,18 @@ class AuthController extends Controller
         $class_number = $request->input('class_number');
 
         if ($request->hasFile('profile_picture_path')) {
-            //store in local storage
-            $profile_picture_path = Storage::disk('public')->put('photos', $request->file('profile_picture_path'));
+            $file = $request->file('profile_picture_path');
+            if ($file->isValid()) {
+                $profile_picture_path = Storage::disk('public')->put('photos', $file);
+                $imageUrl = asset($profile_picture_path);
+                // ...
+            } else {
+                return response()->json(['message' => 'Invalid file uploaded'], 422);
+            }
+        } else {
+            return response()->json(['message' => 'No file uploaded'], 422);
         }
+
 
 
         $user= User::create([
@@ -113,7 +122,7 @@ class AuthController extends Controller
             'email' => $request->email,
             'password' => Hash::make($request['password']),
             'phone' => $request->phone,
-            'profile_picture_path' => $profile_picture_path,
+            'profile_picture_path' => $imageUrl,
             'address' => $request->address,
             'role' => $request->role,
             'gender' => $request->gender
@@ -178,14 +187,31 @@ class AuthController extends Controller
 
 
         if ($request->hasFile('profile_picture_path')) {
-            //store in local storage
-            $profile_picture_path = Storage::disk('public')->put('photos', $request->file('profile_picture_path'));
+            $file = $request->file('profile_picture_path');
+            if ($file->isValid()) {
+                $profile_picture_path = Storage::disk('public')->put('photos', $file);
+                $imageUrl1 = asset($profile_picture_path);
+                // ...
+            } else {
+                return response()->json(['message' => 'Invalid file uploaded'], 422);
+            }
+        } else {
+            return response()->json(['message' => 'No file uploaded'], 422);
         }
 
 
-        if ($request->hasFile('photo_path')) {
-            //store in local storage
-            $photo_path = Storage::disk('public')->put('photos', $request->file('photo_path'));
+
+        if ($request->hasFile('profile_picture_path')) {
+            $file = $request->file('profile_picture_path');
+            if ($file->isValid()) {
+                $photo_path = Storage::disk('public')->put('photos', $file);
+                $imageUrl2 = asset($photo_path);
+                // ...
+            } else {
+                return response()->json(['message' => 'Invalid file uploaded'], 422);
+            }
+        } else {
+            return response()->json(['message' => 'No file uploaded'], 422);
         }
 
 
@@ -196,7 +222,7 @@ class AuthController extends Controller
             'email' => $request->email,
             'password' => Hash::make($request['password']),
             'phone' => $request->phone,
-            'profile_picture_path' => $profile_picture_path,
+            'profile_picture_path' => $imageUrl1,
             'address' => $request->address,
             'role' => $request->role,
             'gender' => $request->gender
@@ -215,7 +241,7 @@ class AuthController extends Controller
         $user['about'] = description_about_the_teacher::create([
                 'teacher_id'=>$user['other_info']->id,
                 'the_description'=>$request->the_description,
-                'photo_path'=>$photo_path,
+                'photo_path'=>$imageUrl2,
         ]);
 
 
