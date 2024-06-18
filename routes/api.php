@@ -54,9 +54,12 @@ Route::group(["middleware" => "auth:api"], function () {
 Route::post('StoreAdvertisements', [AdvertisementController::class, 'store']);
 Route::get('Advertisements', [AdvertisementController::class, 'index']);
 Route::post('Advertisement', [AdvertisementController::class, 'show']);
-Route::post('show_all_by_class', [AdvertisementController::class, 'show_all_by_class']);
 Route::delete('destroy/{id}', [AdvertisementController::class, 'destroy']);
 Route::get('search/{title}', [AdvertisementController::class, 'SearchAdvertisement']);
+Route::group(["middleware" => "auth:api"], function () {
+    Route::get('show_all_by_class', [AdvertisementController::class, 'show_all_by_class']);
+
+});
 
 
 //Book api's
