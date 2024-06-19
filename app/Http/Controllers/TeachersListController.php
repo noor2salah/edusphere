@@ -10,6 +10,8 @@ use Illuminate\support\Facades\Auth;
 use Illuminate\support\facades\DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Carbon\Carbon;
+
 class TeachersListController extends Controller
 {
     public function show_teachers_by_class(Request $request){
@@ -32,21 +34,52 @@ class TeachersListController extends Controller
         return response($teachers,200);
     }
 
-    public function show_about_teacher(Request $request){
+    
+public function show_about_teacher(Request $request)
+{
+    $id = $request->input('teacher_id');
 
-        $id = $request->input('teacher_id');
-        $about = DB::table('description_about_the_teachers')
-        ->where('description_about_the_teachers.teacher_id','=',$id)
-        ->select('description_about_the_teachers.*')
+    // Fetch the teacher details
+    $teacher = DB::table('teachers')
+        ->where('teachers.id', $id)
+        ->select('teachers.*')
+        ->first();
+
+    // Fetch the user details
+    $user = DB::table('teachers')
+        ->where('teachers.id', $id)
+        ->join('users', 'teachers.user_id', '=', 'users.id')
+        ->select('users.*')
+        ->first();
+
+    // Check if the teacher or user does not exist
+    if (!$teacher || !$user) {
+        return response()->json(['message' => 'Teacher not found'], 404);
+    }
+
+    // Calculate the age using Carbon
+    $user->age = Carbon::parse($user->birthdate)->age;
+
+    // Remove the birthdate from the response
+    unset($user->birthdate);
+
+    // Fetch the description about the teacher
+    $about = DB::table('description_about_the_teachers')
+        ->where('teacher_id', $id)
         ->get();
 
-        if(count($about)==0){
-            return response('there is no description');
-        }
-
-        return response($about,200);
-
+    // Check if descriptions exist
+    if ($about->isEmpty()) {
+        return response()->json(['message' => 'There is no description'], 404);
     }
+
+    // Return the teacher's details with age and the descriptions
+    return response()->json([
+        'user' => $user,
+        'teacher' => $teacher,
+        'descriptions' => $about
+    ], 200);
+}
     public function add_to_favorite(Request $request){
         $id=$request->input('id');
         $teacher = teacher::find($id);
