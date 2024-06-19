@@ -198,9 +198,7 @@ class TestController extends Controller
             ->select('grades.*', 'tests.*')
             ->get();
 
-        return response([
-            'grades' => $grades_by_type
-        ]);
+        return response($grades_by_type);
     }
 
     public function show_the_total_grade()

@@ -7,6 +7,8 @@ use Illuminate\Support\Facades\Validator;
 use App\Models\advertisement;
 use App\Models\classs;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
+
 
 
 class AdvertisementController extends Controller
@@ -72,16 +74,14 @@ class AdvertisementController extends Controller
         ], 200);
     }
 
-    public function show_all_by_class(Request $request)
+    public function show_all_by_class()
     {
-        $class_level=$request->input('class_level');
-        $class_number=$request->input('class_number');
-
-        $class_id=DB::table('classses')
-        ->where('classses.class_level',$class_level)
-        ->where('classses.class_number',$class_number)
-        ->value('classses.id');
-
+        $user_id = Auth::id();
+        $class_id = DB::table('students')
+        ->where('students.user_id',$user_id)
+        ->value('students.class_id');
+        
+        
         if (!$class_id) {
             return response()->json([
                 'message' => 'this class does not exist',
