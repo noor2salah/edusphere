@@ -12,12 +12,15 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 class TeachersListController extends Controller
 {
-    public function show_teachers_by_class($id){
+    public function show_teachers_by_class(Request $request){
+
+        $class_level = $request->input('class_level');
+
         $teachers = DB::table('classses')
         ->join('class_subjects','classses.id','=','class_subjects.class_id')
         ->join('teachers','teachers.id','=','class_subjects.teacher_id')
         ->join('users','users.id','=','teachers.user_id')
-        ->where('classses.class_level','=',$id)
+        ->where('classses.class_level','=',$class_level)
         ->select('users.*','teachers.*')
         ->distinct()
         ->get();
@@ -29,7 +32,9 @@ class TeachersListController extends Controller
         return response($teachers,200);
     }
 
-    public function show_about_teacher($id){
+    public function show_about_teacher(Request $request){
+
+        $id = $request->input('teacher_id');
         $about = DB::table('description_about_the_teachers')
         ->where('description_about_the_teachers.teacher_id','=',$id)
         ->select('description_about_the_teachers.*')
@@ -42,7 +47,8 @@ class TeachersListController extends Controller
         return response($about,200);
 
     }
-    public function add_to_favorite($id){
+    public function add_to_favorite(Request $request){
+        $id=$request->input('id');
         $teacher = teacher::find($id);
         $user_as_teacher=user::where('users.id',$teacher->user_id)
         ->select('users.*')

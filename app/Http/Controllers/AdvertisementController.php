@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use App\Models\advertisement;
 use App\Models\classs;
+use Illuminate\Support\Facades\DB;
+
 
 class AdvertisementController extends Controller
 {
@@ -34,11 +36,14 @@ class AdvertisementController extends Controller
             $photo = $request->file('photo_path')->store('photos');
         }
 
-
-
         $class = Classs::where('class_level', $class_level)
             ->where('class_number', $class_number)
-            ->firstOrFail();
+            ->first();
+
+        if (!$class){
+
+            return response('this class does not exist ');
+        }    
         $advertisement = advertisement::create([
             'class_id' => $class->id,
             'title' => $request->title,
@@ -48,11 +53,12 @@ class AdvertisementController extends Controller
 
         return response()->json([
             'advertisements' => $advertisement,
-            'class' => $class,
         ], 200);
     }
-    public function show($id)
+    public function show(Request $request)
     {
+        $id=$request->input('advertisement_id');
+
         $advertisements = advertisement::find($id);
         if (!$advertisements) {
             return response()->json([
@@ -60,6 +66,41 @@ class AdvertisementController extends Controller
 
             ], 200);
         }
+        return response()->json([
+            'message' => 'retruved successfully',
+            'data' => $advertisements,
+        ], 200);
+    }
+
+    public function show_all_by_class(Request $request)
+    {
+        $class_level=$request->input('class_level');
+        $class_number=$request->input('class_number');
+
+        $class_id=DB::table('classses')
+        ->where('classses.class_level',$class_level)
+        ->where('classses.class_number',$class_number)
+        ->value('classses.id');
+
+        if (!$class_id) {
+            return response()->json([
+                'message' => 'this class does not exist',
+
+            ], 200);
+        }
+
+        $advertisements=DB::table('advertisements')
+        ->where('advertisements.class_id',$class_id)
+        ->select('advertisements.*')
+        ->get();
+
+        if (count($advertisements)==0) {
+            return response()->json([
+                'message' => 'not found any Advertisements',
+
+            ], 200);
+        }
+
         return response()->json([
             'message' => 'retruved successfully',
             'data' => $advertisements,
