@@ -388,12 +388,6 @@ public function AddAccountTeacher(Request $request)
                 'message'=>'user does not exist'
             ],404 );
         }
-        // if(!$verfiyCode == Verficationcode::where('email', $passwordReset->email)->first())
-        // {
-        //     return response()->json([
-        //         'message'=>'verfiy code is invalid'
-        //     ],404 );
-        // }
 
         $password = bcrypt($request->input('password'));
 
