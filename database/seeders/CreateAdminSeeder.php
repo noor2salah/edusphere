@@ -20,6 +20,7 @@ class CreateAdminSeeder extends Seeder
             'last_name' => 'aboud',
             'email' => 'owaisaboud1@gmail.com',
             'password' => Hash::make('12345678'),
+
             'phone' => '07777777',
             'birthdate' => '2024-12-12',
             'address' => 'Daraa',

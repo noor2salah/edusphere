@@ -46,8 +46,6 @@ class AuthController extends Controller
         return response()->json([
             'message' => 'User not found',
         ]);
-    }
-    
 
     if (!Hash::check($password, $user->password)) {
         return response()->json([
@@ -69,7 +67,7 @@ class AuthController extends Controller
         'message' => trans('Code has been sent'),
     ]);
 }
-
+}
 public function AddAccountStudent(Request $request)
 {
     $e = $request->all();
@@ -104,6 +102,18 @@ public function AddAccountStudent(Request $request)
         $profile_picture_path = Storage::disk('public')->put('photos', $request->file('profile_picture_path'));
     }
 
+        if ($request->hasFile('profile_picture_path')) {
+            $file = $request->file('profile_picture_path');
+            if ($file->isValid()) {
+                $profile_picture_path = Storage::disk('public')->put('photos', $file);
+                $imageUrl = asset($profile_picture_path);
+                // ...
+            } else {
+                return response()->json(['message' => 'Invalid file uploaded'], 422);
+            }
+        } else {
+            return response()->json(['message' => 'No file uploaded'], 422);
+        }
     // Check if the class exists
     $class = Classs::where('class_level', $class_level)
         ->where('class_number', $class_number)
@@ -112,6 +122,8 @@ public function AddAccountStudent(Request $request)
     try {
         DB::beginTransaction();
 
+
+//        $user= User::create([
         // Create user
         $user = User::create([
             'first_name' => $request->first_name,
@@ -120,7 +132,7 @@ public function AddAccountStudent(Request $request)
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'phone' => $request->phone,
-            'profile_picture_path' => $profile_picture_path,
+            'profile_picture_path' => $imageUrl,
             'address' => $request->address,
             'role' => $request->role,
             'gender' => $request->gender
@@ -195,6 +207,36 @@ public function AddAccountTeacher(Request $request)
     try {
         DB::beginTransaction();
 
+        if ($request->hasFile('profile_picture_path')) {
+            $file = $request->file('profile_picture_path');
+            if ($file->isValid()) {
+                $profile_picture_path = Storage::disk('public')->put('photos', $file);
+                $imageUrl1 = asset($profile_picture_path);
+                // ...
+            } else {
+                return response()->json(['message' => 'Invalid file uploaded'], 422);
+            }
+        } else {
+            return response()->json(['message' => 'No file uploaded'], 422);
+        }
+
+
+
+        if ($request->hasFile('profile_picture_path')) {
+            $file = $request->file('profile_picture_path');
+            if ($file->isValid()) {
+                $photo_path = Storage::disk('public')->put('photos', $file);
+                $imageUrl2 = asset($photo_path);
+                // ...
+            } else {
+                return response()->json(['message' => 'Invalid file uploaded'], 422);
+            }
+        } else {
+            return response()->json(['message' => 'No file uploaded'], 422);
+        }
+
+
+       // $user= User::create([
         // Create user
         $user = User::create([
             'first_name' => $request->first_name,
@@ -203,7 +245,7 @@ public function AddAccountTeacher(Request $request)
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'phone' => $request->phone,
-            'profile_picture_path' => $profile_picture_path,
+            'profile_picture_path' => $imageUrl1,
             'address' => $request->address,
             'role' => $request->role,
             'gender' => $request->gender
@@ -217,10 +259,15 @@ public function AddAccountTeacher(Request $request)
             'specialization' => $request->specialization,
             'salary' => $request->salary,
             'education' => $request->education,
-            'about' => $request->about
+            'about'=>$request->about
+        ]);
+        $user['about'] = description_about_the_teacher::create([
+                'teacher_id'=>$user['other_info']->id,
+                'the_description'=>$request->the_description,
+                'photo_path'=>$imageUrl2,
         ]);
 
-        
+
         $descriptions=[];
         foreach ($request->descriptions as $description_data) {
 
@@ -237,7 +284,7 @@ public function AddAccountTeacher(Request $request)
                 'photo_path' => $photo_path,
             ]);
             $descriptions[] = $description;
-        }        
+        }
 
         DB::commit();
 
@@ -249,7 +296,7 @@ public function AddAccountTeacher(Request $request)
             'teacher' => $teacher,
             'description'=>$descriptions
         ]);
-    } 
+    }
     catch (\Exception $e) {
         DB::rollBack();
         return response()->json([
@@ -258,36 +305,45 @@ public function AddAccountTeacher(Request $request)
         ], 500);
     }
 }
-    public function login(Request $request)
+public function login(Request $request)
     {
         $verfiyCode = Verficationcode::query()->firstWhere('code', $request['code']);
-
+        if(empty($request['code'])){
+            return response()->json([
+                'message'=>'please enter your verification code'
+            ]);
+        }
         if (!$verfiyCode) {
             return response()->json([
-                'message' => 'Invalid code'
+                'message' => 'Invalid Code'
             ]);
         }
 
         $user = User::query()->find($verfiyCode->user_id);
 
+        if(empty($request['password'])){
+            return response()->json([
+                'message'=>'please enter your password'
+            ]); }
+
         if (!$user || !Hash::check($request['password'], $user->password)) {
             return response()->json([
                 'message' => 'Invalid password'
             ]);
-        }
 
+
+        }
         Auth::login($user);
 
         $token = $user->createToken('token')->accessToken;
 
         return response()->json([
             'token' => $token,
-            'data'=>$user,
+            'data' => $user,
             'message' => 'user login successfully'
         ]);
-
-
     }
+
     public function loginAdmin(Request $request)
     {
         if (Auth::attempt(['email' => $request->email, 'password' => $request->password])) {
