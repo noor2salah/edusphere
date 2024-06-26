@@ -118,7 +118,13 @@ Route::post('show_teachers_by_class', [TeachersListController::class, 'show_teac
 Route::post('show_about_teacher', [TeachersListController::class, 'show_about_teacher']);
 
 //task api's
-Route::post('store_task',[TaskController::class,'store_task']);
+
+Route::group(["middleware" => "auth:api"], function () {
+   
+    Route::post('store_task',[TaskController::class,'store_task']);
+
+});
+
 Route::get('show_task/{id}',[TaskController::class,'show_task']);
 Route::post('solve_task/{id}',[TaskController::class,'solve_task']);
 

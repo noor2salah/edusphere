@@ -18,23 +18,33 @@ class TaskController extends Controller
 {
     public function store_task(request $request){
         $validator = Validator::make($request->all(), [
-            'class_subject_id'=>'required|integer',
             'questions' => 'required|array', 
             'questions.*.the_question' => 'required|string', 
             'questions.*.question_grade' => 'required|integer',
             'answers' => 'required|array', 
             'answers.*.the_answer' => 'required|string', 
             'answers.*.correct_answer' => 'required|boolean',
+            'answers.*.task_question_id' => 'required|string'
         ]);
         if ($validator->fails()) {
             return response()->json($validator->errors());
         }
-        $class_subject=class_subject::find($request->class_subject_id);
-        if(!$class_subject){
+
+        $user_id = Auth::id();
+        $teacher_id = DB::table('teachers')
+        ->where('teachers.user_id',$user_id)
+        ->value('teachers.id');
+
+
+        $class_subject_id=DB::table('class_subjects')
+        ->where('class_subjects.teacher_id',$teacher_id)
+        ->value('class_subjects.id');
+
+        if(!$class_subject_id){
             return response('try again');
         }
         $task=task::create([
-            'class_subject_id'=>$request->class_subject_id
+            'class_subject_id'=>$class_subject_id
 
         ]);
         $task_questions = [];
@@ -46,16 +56,28 @@ class TaskController extends Controller
                 'question_grade' => $question_data['question_grade']
             ]);
             $task_questions[] = $task_question;
+        }
+            foreach ($request->answers as $answer_data) {
+                $check=DB::table('tasks')
+                ->where('tasks.id',$task->id)
+                ->join('task_questions','tasks.id','task_questions.task_id')
+                ->where('task_questions.id',$answer_data['task_question_id'])
+                ->value('task_questions.id');    
+                
+                if(!$check){
+                    return response('this answer for this question does not belong to this task');
+                }
+            }
 
             foreach ($request->answers as $answer_data) {
                 $question_answer = question_answer::create([
-                    'task_question_id' => $task_question->id,
+                    'task_question_id' => $answer_data['task_question_id'],
                     'the_answer' => $answer_data['the_answer'],
                     'correct_answer' => $answer_data['correct_answer']
                 ]);
                 $question_answers[] = $question_answer;
             }
-        }
+        
         return response([$task,$task_questions,$question_answers],200);
     }
 
