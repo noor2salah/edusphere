@@ -21,8 +21,9 @@ return new class extends Migration
 
             $table->unsignedBigInteger('class_id')->nullable();
             $table->foreign('class_id')->references('id')->on('classses')->onDelete('cascade');
-           
+
             $table->integer('wallet_balance')->default(0);
+            $table->integer('remain')->default(0)->nullable();
             $table->date('enrollment_date')->nullable();
             $table->string('parent_name')->nullable();
             $table->string('parent_phone')->unique()->nullable();
