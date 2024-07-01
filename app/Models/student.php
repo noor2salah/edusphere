@@ -23,6 +23,7 @@ class student extends Model
         'user_id',
         'class_id',
         'wallet_balance',
+        'remain',
         'enrollment_date',
         'parent_name',
         'parent_phone',
@@ -48,5 +49,8 @@ class student extends Model
     }
     public function favorite_book(){
         return $this->hasMany(favorite_book::class);
+    }
+    public function fee()  {
+        return $this->belongsTo(Fee::class);
     }
 }

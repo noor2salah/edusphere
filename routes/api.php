@@ -9,6 +9,7 @@ use App\Http\Controllers\SubjectsController;
 use App\Http\Controllers\TeachersListController;
 use App\Http\Controllers\TestController;
 use App\Http\Controllers\TaskController;
+use App\Http\Controllers\WalletController;
 use GuzzleHttp\Middleware;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -49,7 +50,7 @@ Route::group(["middleware" => "auth:api"], function () {
 
 });
 
-    
+
 //advertisements api's
 Route::post('StoreAdvertisements', [AdvertisementController::class, 'store']);
 Route::get('Advertisements', [AdvertisementController::class, 'index']);
@@ -100,7 +101,7 @@ Route::post('show_test_by_class_level', [TestController::class, 'show_test_by_cl
 Route::get('show', [TestController::class, 'index']);
 
 Route::group(["middleware" => "auth:api"], function () {
-    
+
     Route::post('show_grade_by_type', [TestController::class, 'show_grade_by_type']);
     Route::get('show_the_total_grade', [TestController::class, 'show_the_total_grade']);
 
@@ -120,7 +121,7 @@ Route::post('show_about_teacher', [TeachersListController::class, 'show_about_te
 //task api's
 
 Route::group(["middleware" => "auth:api"], function () {
-   
+
     Route::post('store_task',[TaskController::class,'store_task']);
 
 });
@@ -128,5 +129,10 @@ Route::group(["middleware" => "auth:api"], function () {
 Route::get('show_task/{id}',[TaskController::class,'show_task']);
 Route::post('solve_task/{id}',[TaskController::class,'solve_task']);
 
-
-Route::group(["middleware" => "auth:api"], function () {});
+//this Api's for wallet
+Route::group(["middleware" => "auth:api"], function () {
+    Route::post('create_fee',[WalletController::class,'create_fee']);
+    Route::post('paid_fee',[WalletController::class,'paid_fees']);
+    Route::post('deposit',[WalletController::class,'deposit_wallet']);
+    Route::get('show',[WalletController::class,'show']);
+});
