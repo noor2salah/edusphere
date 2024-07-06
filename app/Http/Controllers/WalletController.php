@@ -19,13 +19,11 @@ class WalletController extends Controller
     public function create_fee(Request $request)
     {
 
-       $request->validate([
+        $request->validate([
 
             'fee_name' => 'required|string',
             'benifats' => 'required|numeric|min:0',
         ]);
-
-
 
         $fee_name = $request->input('fee_name');
         $benifats = $request->input('benifats');
@@ -33,15 +31,11 @@ class WalletController extends Controller
         $due_date = now()->addMonth()->format('y-m-d');
 
 
-
-
         $fee = Fee::create([
             'fee_name' => $fee_name,
             'benifats' => $benifats,
             'due_date' => $due_date,
         ]);
-
-
 
         $students = student::all();
 
@@ -94,8 +88,7 @@ class WalletController extends Controller
       $request->validate([
         'amount'=>'required|numeric|min:0',
         'description'=>'required|string',
-
-      ]);
+        ]);
 
         $user = auth()->user();
         if (!$user) {

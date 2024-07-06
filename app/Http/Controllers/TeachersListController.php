@@ -2,12 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Middleware\Teacher as MiddlewareTeacher;
 use App\Models\favorite_teacher;
 use App\Models\student;
 use App\Models\teacher;
 use App\Models\user;
-use Illuminate\support\Facades\Auth;
-use Illuminate\support\facades\DB;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
@@ -34,7 +35,7 @@ class TeachersListController extends Controller
         return response($teachers,200);
     }
 
-    
+
 public function show_about_teacher(Request $request)
 {
     $id = $request->input('teacher_id');
@@ -126,9 +127,9 @@ public function show_about_teacher(Request $request)
         ->value('students.id');
 
         if($student_id!=$teacher->student_id){
-    
+
             return response('you can not delete this , you are not the owner');
-    
+
         }
 
         $teacher->delete();
@@ -154,6 +155,17 @@ public function show_about_teacher(Request $request)
         }
 
         return response($fav_teachers,200);
+    }
+    public function get_all_teacher() {
+        $teacher = USer::where('role','teacher')->with('teacher')->get();
+        if(!$teacher) {
+            return response()->json([
+                'message'=>'not found teacher'
+            ],404);
+        }
+
+        return response()->json($teacher,200);
+
     }
 
 }

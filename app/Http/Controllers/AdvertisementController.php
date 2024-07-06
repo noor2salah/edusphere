@@ -45,7 +45,7 @@ class AdvertisementController extends Controller
         if (!$class){
 
             return response('this class does not exist ');
-        }    
+        }
         $advertisement = advertisement::create([
             'class_id' => $class->id,
             'title' => $request->title,
@@ -80,8 +80,8 @@ class AdvertisementController extends Controller
         $class_id = DB::table('students')
         ->where('students.user_id',$user_id)
         ->value('students.class_id');
-        
-        
+
+
         if (!$class_id) {
             return response()->json([
                 'message' => 'this class does not exist',
@@ -126,16 +126,15 @@ class AdvertisementController extends Controller
         $advertisement = advertisement::where('title', 'like', '%' . $title . '%')
         ->get();
 
-   if ($advertisement) {
+    if ($advertisement) {
         return response()->json([
-             'advertisement'=>$advertisement
+            'advertisement'=>$advertisement
         ]);
-   }
-   return response()->json(
+    }
+    return response()->json(
         [
-             'message' => 'not found !'
-        ]
-   );
+            'message' => 'not found !'
+        ]);
     }
-    }
+}
 

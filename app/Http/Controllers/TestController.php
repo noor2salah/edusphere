@@ -7,7 +7,7 @@ use App\Models\classs;
 use App\Models\class_subject;
 use App\Models\grade;
 use App\Models\test;
-use Auth;
+use illuminate\support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\Request;
@@ -48,7 +48,7 @@ class TestController extends Controller
         return response()->json($tests);
     }
     public function store_test(Request $request)
-    {
+    { 
         $class_level = $request->input('class_level');
         $class_number = $request->input('class_number');
         $exam_paper_path = $request->file('exam_paper_path');
@@ -142,7 +142,7 @@ class TestController extends Controller
 
 
         if ($check_class1 != $check_class2) {
-            return response('this studentd is not in the correct class');
+            return response('this student is not in the correct class');
         }
 
         $total_grade = DB::table('tests')

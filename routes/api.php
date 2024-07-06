@@ -69,10 +69,12 @@ Route::group(["middleware" => "auth:api"], function () {
     Route::get('show_entertainment_book', [LibraryController::class, 'show_entertainment']);
 });
 
-Route::post('store_book', [LibraryController::class, 'store']);
+
 
 //favorite api's
 Route::group(["middleware" => "auth:api"], function () {
+    Route::post('store_book', [LibraryController::class, 'store'])->middleware('admin');
+    Route::get('get_all_teacher',[TeachersListController::class,'get_all_teacher'])->middleware('admin');
     Route::post('add_to_fav', [LibraryController::class, 'add_to_favorite']);
     Route::get('show_fav_books', [LibraryController::class, 'show_favorite_books']);
     Route::delete('remove_from_fav/{id}', [LibraryController::class, 'remove_from_favorite']);
@@ -83,16 +85,19 @@ Route::group(["middleware" => "auth:api"], function () {
 });
 
 //class and subject api's
+Route::group(["middleware" => "auth.php"],function() {
+
+
 Route::get('show_class', [ClassController::class, 'show_all_classes']);
 Route::delete('class/{id}', [ClassController::class, 'detete_class']);
 Route::get('showStudentsByClass/{id}', [ClassController::class, 'showStudentsByClass']);
 Route::post('show_subjects_of_the_class', [SubjectsController::class, 'show_subjects_of_the_class']);
 Route::post('show_subject', [SubjectsController::class, 'show_subject']);
-Route::post('store', [ClassController::class, 'store']);
-Route::post('store_subject', [SubjectsController::class, 'store_subject']);
-Route::post('store_class_subject', [SubjectsController::class, 'store_class_subject']);
-Route::post('EditClass/{id}', [ClassController::class, 'EditClass']);
-
+Route::post('store', [ClassController::class, 'store'])->middleware('admin');
+Route::post('store_subject', [SubjectsController::class, 'store_subject'])->middleware('admin');
+Route::post('store_class_subject', [SubjectsController::class, 'store_class_subject'])->middleware('admin');
+Route::post('EditClass/{id}', [ClassController::class, 'EditClass'])->middleware('admin');
+});
 
 
 //test api's
@@ -106,13 +111,15 @@ Route::group(["middleware" => "auth:api"], function () {
     Route::get('show_the_total_grade', [TestController::class, 'show_the_total_grade']);
 
 });
+Route::group(["middleware"=>"auth.php"],function ()  {
 
-Route::post('storeTest', [TestController::class, 'store_test']);
+
+Route::post('storeTest', [TestController::class, 'store_test'])->middleware('admin');
 Route::post('store_grade_test', [TestController::class, 'store_grade_test']);
 Route::delete('delete_test/{id}', [TestController::class, 'delete_test']);
 Route::delete('delete_grade/{student_id}', [TestController::class, 'delete_grade']);
 
-
+});
 
 //teacher list Api's
 Route::post('show_teachers_by_class', [TeachersListController::class, 'show_teachers_by_class']);
