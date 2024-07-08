@@ -28,14 +28,12 @@ class LibraryController extends Controller
         {
             return response()->json($validator->errors());
         }
-        if($request->hasFile('book_path'))
-        {
-            $book = $request->file('book_path')->store('books');
-        }
-        if ($request->hasFile('photo_path')) {
-            //store in local storage
-            $photo_path = Storage::disk('public')->put('photos', $request->file('photo_path'));
-        }
+
+    $book_path = $request->file('book_path')->store('images','public');
+    $bookUrl = asset('storage/'.$book_path);
+
+
+
         $book_name=DB::table('libraries')
         ->where('libraries.book_name',$request->book_name)
         ->value('libraries.book_name');
@@ -43,16 +41,18 @@ class LibraryController extends Controller
         if($book_name){
             return response('this book is already in the library');
         }
+        $photo_path = $request->file('photo_path')->store('images','public');
+        $imageUrl = asset('storage/'.$photo_path);
 
         $library=library::create([
             'book_name' => $request->book_name,
-            'book_path' => $book,
-            'photo_path'=>$photo_path,
+            'book_path' => $bookUrl,
+            'photo_path'=>$imageUrl,
             'type' => $request->type,
         ]);
         return response()->json($library,200);
     }
-    
+
     public function show_educational()
     {
         $books = library::where('type','educational')->get();
@@ -104,17 +104,17 @@ class LibraryController extends Controller
         if($book->student_id==$student_id){
             $book->delete();
             return response('the book deleted from favorite');
-    
+
         }
         return response('you can not delete this book');
- 
+
     }
     public function show_favorite_books(){
         $user_id = Auth::id();
         $student_id = DB::table('students')
         ->where('students.user_id',$user_id)
         ->value('students.id');
-       
+
         $fav_books= DB::table('favorite_books')
         ->where('favorite_books.student_id',$student_id)
         ->join('libraries','favorite_books.library_id','=','libraries.id')

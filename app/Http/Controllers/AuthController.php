@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Events\StudentCreated;
+use App\Http\Middleware\Admin as MiddlewareAdmin;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -65,7 +66,7 @@ class AuthController extends Controller
 
     return response()->json([
         'message' => trans('Code has been sent'),
-    
+
     ]);
 }
 }
@@ -80,7 +81,7 @@ public function AddAccountStudent(Request $request)
         'password' => 'required|string',
         'phone' => 'required|string|unique:users',
         'address' => 'required|string',
-        'profile_picture_path' => 'nullable|image|max:2048',
+        'profile_picture_path' => 'required|image|mimes:jpg,png,jpeg,gif,svg|max:2048',
         'gender' => 'required',
         'role' => 'required|string',
         'class_level' => 'required',
@@ -97,24 +98,11 @@ public function AddAccountStudent(Request $request)
 
     $class_level = $request->input('class_level');
     $class_number = $request->input('class_number');
-    $profile_picture_path = null;
 
-    if ($request->hasFile('profile_picture_path')) {
-        $profile_picture_path = Storage::disk('public')->put('photos', $request->file('profile_picture_path'));
-    }
+    $profile_picture_path = $request->file('profile_picture_path')->store('images','public');
 
-        if ($request->hasFile('profile_picture_path')) {
-            $file = $request->file('profile_picture_path');
-            if ($file->isValid()) {
-                $profile_picture_path = Storage::disk('public')->put('photos', $file);
-                $imageUrl = asset($profile_picture_path);
-                // ...
-            } else {
-                return response()->json(['message' => 'Invalid file uploaded'], 422);
-            }
-        } else {
-            return response()->json(['message' => 'No file uploaded'], 422);
-        }
+    $imageUrl = asset('storage/'.$profile_picture_path);
+
     // Check if the class exists
     $class = Classs::where('class_level', $class_level)
         ->where('class_number', $class_number)
@@ -124,7 +112,7 @@ public function AddAccountStudent(Request $request)
         DB::beginTransaction();
 
 
-//        $user= User::create([
+   //        $user= User::create([
         // Create user
         $user = User::create([
             'first_name' => $request->first_name,
@@ -161,6 +149,7 @@ public function AddAccountStudent(Request $request)
             'message' => 'Register successfully',
             'student' => $student1,
             'user' => $user,
+
         ]);
     } catch (\Exception $e) {
         DB::rollBack();
@@ -181,7 +170,7 @@ public function AddAccountTeacher(Request $request)
         'password' => 'required|string',
         'phone' => 'required|string|unique:users',
         'address' => 'required|string',
-        'profile_picture_path' => 'nullable|image|max:2048',
+        'profile_picture_path' => 'required|image|mimes:jpg,png,jpeg,gif,svg|max:2048',
         'gender' => 'required',
         'role' => 'required|string',
         'about' => 'required',
@@ -199,43 +188,12 @@ public function AddAccountTeacher(Request $request)
         return response()->json($validator->errors(), 422);
     }
 
-    $profile_picture_path = null;
+    $profile_picture_path = $request->file('profile_picture_path')->store('images','public');
 
-    if ($request->hasFile('profile_picture_path')) {
-        $profile_picture_path = Storage::disk('public')->put('photos', $request->file('profile_picture_path'));
-    }
+    $imageUrl = asset('storage/'.$profile_picture_path);
 
     try {
         DB::beginTransaction();
-
-        if ($request->hasFile('profile_picture_path')) {
-            $file = $request->file('profile_picture_path');
-            if ($file->isValid()) {
-                $profile_picture_path = Storage::disk('public')->put('photos', $file);
-                $imageUrl1 = asset($profile_picture_path);
-                // ...
-            } else {
-                return response()->json(['message' => 'Invalid file uploaded'], 422);
-            }
-        } else {
-            return response()->json(['message' => 'No file uploaded'], 422);
-        }
-
-
-
-        if ($request->hasFile('profile_picture_path')) {
-            $file = $request->file('profile_picture_path');
-            if ($file->isValid()) {
-                $photo_path = Storage::disk('public')->put('photos', $file);
-                $imageUrl2 = asset($photo_path);
-                // ...
-            } else {
-                return response()->json(['message' => 'Invalid file uploaded'], 422);
-            }
-        } else {
-            return response()->json(['message' => 'No file uploaded'], 422);
-        }
-
 
        // $user= User::create([
         // Create user
@@ -246,7 +204,7 @@ public function AddAccountTeacher(Request $request)
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'phone' => $request->phone,
-            'profile_picture_path' => $imageUrl1,
+            'profile_picture_path' => $imageUrl,
             'address' => $request->address,
             'role' => $request->role,
             'gender' => $request->gender
@@ -262,27 +220,20 @@ public function AddAccountTeacher(Request $request)
             'education' => $request->education,
             'about'=>$request->about
         ]);
-        $user['about'] = description_about_the_teacher::create([
-                'teacher_id'=>$user['other_info']->id,
-                'the_description'=>$request->the_description,
-                'photo_path'=>$imageUrl2,
-        ]);
+
 
 
         $descriptions=[];
         foreach ($request->descriptions as $description_data) {
 
-            $photo_path = null;
+            $photo_path = $description_data['photo_path']->store('images','public');
 
-            if (isset($description_data['photo_path']) && $description_data['photo_path']->isValid()) {
-                // Store the photo in local storage
-                $photo_path = Storage::disk('public')->put('photos', $description_data['photo_path']);
-            }
+            $image_path = asset('storage/'.$photo_path);
 
             $description = description_about_the_teacher::create([
                 'teacher_id' => $teacher->id,
                 'the_description' => $description_data['the_description'],
-                'photo_path' => $photo_path,
+                'photo_path' => $image_path,
             ]);
             $descriptions[] = $description;
         }
@@ -551,18 +502,16 @@ public function login(Request $request)
                 'message' => 'user not found',
             ], 404);
         }
-        if ($request->hasFile('profile_picture_path')) {
-            //store in local storage
-            $profile_picture_path = Storage::disk('public')->put('photos', $request->file('profile_picture_path'));
-        }
 
-        $user->update($request->all());
-        $student->update($request->all());
-        if ($request->hasFile('profile_picture_path')) {
-            $profile_picture = $request->file('profile_picture_path');
-            $profile_picture_path = $profile_picture->store('photos', 'public');
-            $user->profile_picture_path = $profile_picture_path;
-        }
+            //store in local storage
+
+            $profile_picture_path = $request->file('profile_picture_path')->store('images','public');
+
+            $imageUrl = asset('storage/'.$profile_picture_path);
+            $user->profile_picture_path = $imageUrl;
+            $user->update($request->all());
+            $student->update($request->all());
+
         $user->save();
         $student->save();
 
@@ -570,6 +519,7 @@ public function login(Request $request)
             'message' => 'updated successfully',
             'user' => $user,
             'student' => $student,
+            'url' => $imageUrl
         ]);
     }
     public function EditProfileteacher( Request $request)
@@ -590,14 +540,13 @@ public function login(Request $request)
                 'message' => 'user not found',
             ], 404);
         }
+        $profile_picture_path = $request->file('profile_picture_path')->store('images','public');
 
+        $imageUrl = asset('storage/'.$profile_picture_path);
+        $user->profile_picture_path = $imageUrl;
         $user->update($request->all());
         $teacher->update($request->all());
-        if ($request->hasFile('profile_picture_path')) {
-            $profile_picture = $request->file('profile_picture_path');
-            $profile_picture_path = $profile_picture->store('photos', 'public');
-            $user->profile_picture_path = $profile_picture_path;
-        }
+
         $user->save();
         $teacher->save();
 
@@ -605,6 +554,7 @@ public function login(Request $request)
             'message' => 'updated successfully',
             'user' => $user,
             'teacher' => $teacher,
+            'url' => $imageUrl,
         ]);
     }
     public function profileAdmin()
@@ -614,28 +564,27 @@ public function login(Request $request)
     }
     public function EditprofileAdmin(Request $request)
     {
-            $admin = Auth::user();
+            $user = Auth::user();
 
-            if (!$admin || $admin->role!= 'admin') {
+            if (!$user || $user->role!= 'admin') {
                 return response()->json([
                     'essage' => 'You are not an admin',
                 ], 403);
             }
-            $user = User::where('id',$admin->user_id)->first();
+            $admin = Admin::where('user_id',$user->id)->first();
 
-            $user->update($request->all());
 
-            if ($request->hasFile('profile_picture_path')) {
-                $profile_picture = $request->file('profile_picture_path');
-                $profile_picture_path = $profile_picture->store('photos', 'public');
-                $admin->profile_picture_path = $profile_picture_path;
-            }
+                $profile_picture_path = $request->file('profile_picture_path')->store('images', 'public');
+                $imageUrl = asset('storage/' . $profile_picture_path);
+                $user->profile_picture_path = $imageUrl;
 
-            $user->save();
+                $admin->update($request->all());
+                $admin->save();
 
             return response()->json([
                 'message' => 'Profile updated successfully',
                 'admin' => $user,
+                'url' => $imageUrl,
             ]);
         }
 }

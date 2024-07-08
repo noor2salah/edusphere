@@ -44,8 +44,8 @@ Route::group(["middleware" => "auth:api"], function () {
     Route::get('profilestudent/{id}', [AuthController::class, 'profileStudent']);
     Route::get('profileteacher/{id}', [AuthController::class, 'profileteacher']);
     Route::post('EditProfile', [AuthController::class, 'EditProfilestudent']);
-    Route::post('EditProfileteacher/{id}', [AuthController::class, 'EditProfileteacher']);
-    Route::post('EditprofileAdmin/{id}', [AuthController::class, 'EditprofileAdmin'])->middleware('admin');
+    Route::post('EditProfileteacher', [AuthController::class, 'EditProfileteacher']);
+    Route::post('EditprofileAdmin', [AuthController::class, 'EditprofileAdmin'])->middleware('admin');
     Route::get('profileAdmin', [AuthController::class, 'profileAdmin'])->Middleware('admin');
 
 });
@@ -85,7 +85,7 @@ Route::group(["middleware" => "auth:api"], function () {
 });
 
 //class and subject api's
-Route::group(["middleware" => "auth.php"],function() {
+Route::group(["middleware" => "auth:api"],function() {
 
 
 Route::get('show_class', [ClassController::class, 'show_all_classes']);
@@ -110,14 +110,11 @@ Route::group(["middleware" => "auth:api"], function () {
     Route::post('show_grade_by_type', [TestController::class, 'show_grade_by_type']);
     Route::get('show_the_total_grade', [TestController::class, 'show_the_total_grade']);
 
-});
-Route::group(["middleware"=>"auth.php"],function ()  {
 
-
-Route::post('storeTest', [TestController::class, 'store_test'])->middleware('admin');
-Route::post('store_grade_test', [TestController::class, 'store_grade_test']);
-Route::delete('delete_test/{id}', [TestController::class, 'delete_test']);
-Route::delete('delete_grade/{student_id}', [TestController::class, 'delete_grade']);
+    Route::post('storeTest', [TestController::class, 'store_test'])->middleware('admin');
+    Route::post('store_grade_test', [TestController::class, 'store_grade_test']);
+    Route::delete('delete_test/{id}', [TestController::class, 'delete_test']);
+    Route::delete('delete_grade/{student_id}', [TestController::class, 'delete_grade']);
 
 });
 

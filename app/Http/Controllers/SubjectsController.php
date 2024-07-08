@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use GuzzleHttp\Psr7\UploadedFile;
 
 class SubjectsController extends Controller
 {//
@@ -34,9 +35,10 @@ class SubjectsController extends Controller
         if ($validator->fails()) {
             return response()->json($validator->errors());
         }
-        if ($request->hasFile('book_path')) {
-            $book = $request->file('book_path')->store('books');
-        }
+
+            $book = $request->file('book_path')->store('images','public');
+            $bookUrl = asset('storage/'.$book);
+
 
         $request->validate([
             'the_class' => 'required|in:7,8,9',
@@ -57,37 +59,40 @@ class SubjectsController extends Controller
             'the_class' => $request->the_class,
             'about_subject' => $request->about_subject,
             'total_grade'=>$request->total_grade,
-            'book_path' => $book,
+            'book_path' => $bookUrl,
         ]);
 
         $subject_units=[];
         foreach ($request->units as $unit_data) {
 
-            if (isset($unit_data['photo_path']) && $unit_data['photo_path']->isValid()) {
-                // Store the photo in local storage
-                $photo_path = Storage::disk('public')->put('photos', $unit_data['photo_path']);
-            }
+
+            $photo_subject_path = $unit_data['photo_path']->store('images','public');
+            $photoSubjectUrl = asset('storage/'.$photo_subject_path);
+
 
             $subject_unit = subject_units::create([
                 'subject_id' => $subject->id,
                 'unit_number' => $unit_data['unit_number'],
                 'title' => $unit_data['title'],
                 'description' => $unit_data['description'],
-                'photo_path' => $photo_path
+                'photo_path' => $photoSubjectUrl
             ]);
+
             $subject_units[] = $subject_unit;
         }
+
         $photos_about_subject=[];
         foreach ($request->photos as $the_photo) {
 
-            if (isset($the_photo['photo_for_subject']) && $the_photo['photo_for_subject']->isValid()) {
-                // Store the photo in local storage
-                $photo_path = Storage::disk('public')->put('photos', $the_photo['photo_for_subject']);
-            }
+
+            $photo_path = $the_photo['photo_for_subject']->store('images','public');
+            $photoUrl = asset('storage/'.$photo_path);
+
+
 
             $photo_about_subject = photos_about_subject::create([
                 'subject_id'=>$subject->id,
-                'photo_path'=>$photo_path,
+                'photo_path'=>$photoUrl,
             ]);
             $photos_about_subject[] = $photo_about_subject;
         }
@@ -175,19 +180,19 @@ class SubjectsController extends Controller
             ->where('subjects.id', $id)
             ->select('subjects.*')
             ->get();
-            
+
         $subject_units = DB::table('subjects')
         ->where('subjects.id', $id)
         ->join('subject_units', 'subject_units.subject_id', '=', 'subjects.id')
         ->select('subject_units.*')
         ->get();
-    
+
         $subject_photos = DB::table('subjects')
             ->where('subjects.id', $id)
             ->join('photos_about_subjects','photos_about_subjects.subject_id','subjects.id')
             ->select('photos_about_subjects.*')
             ->get();
-        
+
         return response()->json([
             'the subject'=>$subject,
             'units'=>$subject_units,

@@ -33,10 +33,10 @@ class AdvertisementController extends Controller
         $class_level = $request->input('class_level');
         $class_number = $request->input('class_number');
 
-        $photo = null;
-        if ($request->hasFile('photo_path')) {
-            $photo = $request->file('photo_path')->store('photos');
-        }
+
+    $photo_path = $request->file('photo_path')->store('images','public');
+
+    $imageUrl = asset('storage/'.$photo_path);
 
         $class = Classs::where('class_level', $class_level)
             ->where('class_number', $class_number)
@@ -50,8 +50,8 @@ class AdvertisementController extends Controller
             'class_id' => $class->id,
             'title' => $request->title,
             'advertisement' => $request->advertisement,
-            'photo_path' => $photo,
-        ]);
+            'photo_path' => $imageUrl,
+              ]);
 
         return response()->json([
             'advertisements' => $advertisement,
