@@ -11,9 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('students', function (Blueprint $table) {
-            $table->integer('remain')->nullable();
-
+        Schema::table('about_wallets', function (Blueprint $table) {
+            $table->unsignedBigInteger('fee_id')->nullable();
+            $table->foreign('fee_id')->references('id')->on('about_wallets')->onDelete('cascade');
+           
         });
     }
 
@@ -22,7 +23,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('students', function (Blueprint $table) {
+        Schema::table('about_wallets', function (Blueprint $table) {
             //
         });
     }

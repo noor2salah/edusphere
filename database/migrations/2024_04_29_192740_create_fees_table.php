@@ -15,11 +15,8 @@ return new class extends Migration
             $table->id();
             $table->string('fee_name');
 
-            $table->integer('benifats')->default(0);
-
-
-            $table->unsignedBigInteger('student_id')->nullable();
-            $table->foreign('student_id')->references('id')->on('students')->onDelete('cascade');
+            $table->integer('benefits')->default(0);
+            $table->enum('type',['bus','school','other']);
 
             $table->date('due_date');
             $table->timestamps();

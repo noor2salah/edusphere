@@ -47,7 +47,7 @@ class AuthController extends Controller
         return response()->json([
             'message' => 'User not found',
         ]);
-
+    }
     if (!Hash::check($password, $user->password)) {
         return response()->json([
             'message' => 'Invalid password',
@@ -60,6 +60,7 @@ class AuthController extends Controller
         'password' => $password,
         'user_id' => $user->id,
     ]);
+    
 
     // Send email to user
     Mail::to($request->email)->send(new VerfiyCode($codeData->code, $password));
@@ -69,7 +70,7 @@ class AuthController extends Controller
 
     ]);
 }
-}
+
 public function AddAccountStudent(Request $request)
 {
     $e = $request->all();
@@ -90,6 +91,7 @@ public function AddAccountStudent(Request $request)
         'parent_name' => 'required|string',
         'parent_phone' => 'required|string|unique:students',
         'parent_email' => 'required|email|unique:students',
+        'bus'=>'required|boolean',
     ]);
 
     if ($validator->fails()) {
@@ -135,6 +137,7 @@ public function AddAccountStudent(Request $request)
             'parent_name' => $request->parent_name,
             'parent_phone' => $request->parent_phone,
             'parent_email' => $request->parent_email,
+            'bus'=>$request->bus
         ]);
 
         Event::dispatch(new StudentCreated($class));

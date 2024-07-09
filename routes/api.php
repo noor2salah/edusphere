@@ -104,6 +104,10 @@ Route::post('EditClass/{id}', [ClassController::class, 'EditClass'])->middleware
 
 Route::post('show_test_by_class_level', [TestController::class, 'show_test_by_class_level']);
 Route::get('show', [TestController::class, 'index']);
+Route::post('storeTest', [TestController::class, 'store_test']);
+Route::post('store_grade_test', [TestController::class, 'store_grade_test']);
+Route::delete('delete_test/{id}', [TestController::class, 'delete_test']);
+Route::delete('delete_grade/{student_id}', [TestController::class, 'delete_grade']);
 
 Route::group(["middleware" => "auth:api"], function () {
 
@@ -111,10 +115,6 @@ Route::group(["middleware" => "auth:api"], function () {
     Route::get('show_the_total_grade', [TestController::class, 'show_the_total_grade']);
 
 
-    Route::post('storeTest', [TestController::class, 'store_test'])->middleware('admin');
-    Route::post('store_grade_test', [TestController::class, 'store_grade_test']);
-    Route::delete('delete_test/{id}', [TestController::class, 'delete_test']);
-    Route::delete('delete_grade/{student_id}', [TestController::class, 'delete_grade']);
 
 });
 
@@ -133,10 +133,13 @@ Route::group(["middleware" => "auth:api"], function () {
 Route::get('show_task/{id}',[TaskController::class,'show_task']);
 Route::post('solve_task/{id}',[TaskController::class,'solve_task']);
 
+
 //this Api's for wallet
+Route::post('create_fee',[WalletController::class,'create_fee']);
+Route::post('deposit',[WalletController::class,'deposit_wallet']);
+Route::get('all_wallet_balance',[WalletController::class,'all_wallet_balance']);
+
 Route::group(["middleware" => "auth:api"], function () {
-    Route::post('create_fee',[WalletController::class,'create_fee']);
     Route::post('paid_fee',[WalletController::class,'paid_fees']);
-    Route::post('deposit',[WalletController::class,'deposit_wallet']);
     Route::get('show',[WalletController::class,'show']);
 });

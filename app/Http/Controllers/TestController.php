@@ -78,7 +78,7 @@ class TestController extends Controller
         }
 
         $test = Test::create([
-            'class_subject_id' => $request->class_subject_id,
+            'class_subject_id' => $class_subject_id,
             'type' => $request->input('type'),
             'exam_paper_path' => $exam_path,
         ]);

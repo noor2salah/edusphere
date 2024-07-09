@@ -8,54 +8,79 @@ use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\NewFee;
 use App\Models\Fee;
+
 
 class WalletController extends Controller
 {
 
     public function create_fee(Request $request)
     {
-
-        $request->validate([
-
+        // Validate request input
+        $validator = Validator::make($request->all(),[
             'fee_name' => 'required|string',
-            'benifats' => 'required|numeric|min:0',
+            'benefits' => 'required|numeric|min:0',
+            'type'=>'required|string',
         ]);
+        
 
+        if($validator->fails())
+        {
+            return response()->json($validator->errors());
+        }
+        $request->validate([
+            'type' => 'required|in:bus,school,other',
+        ]);
+        
+    
+        // Extract input data from request
         $fee_name = $request->input('fee_name');
-        $benifats = $request->input('benifats');
-
-        $due_date = now()->addMonth()->format('y-m-d');
-
-
+        $benefits = $request->input('benefits');
+        $type = $request->input('type');
+        $due_date = now()->addMonth()->format('Y-m-d');
+    
+        // Create the fee record
         $fee = Fee::create([
             'fee_name' => $fee_name,
-            'benifats' => $benifats,
+            'benefits' => $benefits,
+            'type' => $type,
             'due_date' => $due_date,
         ]);
-
-        $students = student::all();
-
+    
+        // Fetch the students by their IDs
+        $students = Student::get();
+    
+        // Update the benefits for the fetched students
         foreach ($students as $student) {
-            $student->remain += $benifats;
-            $student->save();
-        }
 
+            if($type=='school'){
+                $student->remain += $benefits;
+                $student->save();
+            }
+
+            else if ($type=='bus' && $student->bus=='1'){
+                $student->remain += $benefits;
+                $student->save();
+            }
+
+            
+        }
+    
+        // Return a success response with the created fee data
         return response()->json([
             'message' => trans('success'),
             'data' => $fee,
         ]);
     }
-
+    
     public function deposit_wallet(Request $request)
     {
         $request->validate([
             'student_id' => 'required|integer',
             'amount' => 'required|numeric|min:0',
-            'description' => 'required',
         ]);
 
         $student = Student::find($request->input('student_id'));
@@ -67,15 +92,15 @@ class WalletController extends Controller
         }
 
         $amount = $request->input('amount');
-        $description = $request->input('description');
 
         $student->wallet_balance += $amount;
         $student->save();
 
         $wallet_info = about_wallet::create([
             'student_id' => $student->id,
-            'description' => $description,
             'amount' => $amount,
+            'description'=>'deposit',
+            'fee_id'=>null
         ]);
 
         return response()->json([
@@ -86,55 +111,83 @@ class WalletController extends Controller
     public function paid_fees(Request $request)
     {
       $request->validate([
-        'amount'=>'required|numeric|min:0',
-        'description'=>'required|string',
+        'fee_id'=>'required|numeric|min:0'
         ]);
 
-        $user = auth()->user();
-        if (!$user) {
-            return response()->json('you are not auth', 401);
-        }
-        $student = $user->student;
+        $user_id = Auth::id();
+
+        $student_id=DB::table('students')
+        ->where('students.user_id',$user_id)
+        ->value('students.id');
+
+        $student = Student::find($student_id);
+
         if (!$student) {
 
             return response()->json('You are not student', 403);
         }
 
+        $the_fee=DB::table('fees')
+        ->where('fees.id',$request->fee_id)
+        ->select('fees.*')
+        ->first();
+        
+        if(!$the_fee){
+            return response()->json('this fee does not exist ', 403);
 
-        $amount = $request->input('amount');
-        $description = $request->input('description');
+        }
+
+        $check=DB::table('about_wallets')
+        ->where('about_wallets.student_id',$student->id)
+        ->where('about_wallets.fee_id',$request->fee_id)
+        ->select('about_wallets.*')
+        ->first();
+
+        if($check){
+            return response()->json('You already paid this fee , thanks', 403);
+
+        }
+
+       
+
+        $amount = $the_fee->benefits;
+        $description='withdraw';
 
 
 
         // Check if the user has already paid the fee
-        if ($student->remain == 0) {
-            return response()->json(['message' => 'you do not have any Fee for paid it']);
-
-        } else if ($student->remain < $amount) {
-
-            return response()->json([
-                'message' => "you now pay more than your fees please {$student->remain} "
-            ]);
-        } else  if ($student->remain >= $amount) {
-
-            $student->remain -= $amount;
-            $student->save();
-
-
+        
         if ($student->wallet_balance >= $amount) {
 
-            $student->wallet_balance -= $amount;
-            $student->save();
+            if($the_fee->type =='school'){
+                $student->remain -= $amount;
+                $student->wallet_balance -= $amount;
+                $student->save();
+
+            }
+            else if($the_fee->type =='bus' && $student->bus =='1'){
+                $student->remain -= $amount;
+                $student->wallet_balance -= $amount;
+                $student->save();
+
+            }
+            else if($the_fee->type =='bus' && $student->bus =='0'){
+                return response('you are not in the bus , you can not paid for it ');
+            }
+            else if ($the_fee->type == 'other'){
+                $student->wallet_balance -= $amount;
+                $student->save();
+
+            }
+
+
             // Save the updated benifats value
-        } else {
-            return response()->json([
-                'message' => 'you do not have enough money for this operation please deposit in your wallet'
-            ]);
-        }
+        
 
         $wallet_info =   about_wallet::create([
             'student_id' => $student->id,
             'description' => $description,
+            'fee_id'=>$request->fee_id,
             'amount' => $amount,
 
         ]);
@@ -145,6 +198,11 @@ class WalletController extends Controller
             'data' => $wallet_info,
         ]);
         }
+        else {
+            return response()->json([
+                'message' => 'you do not have enough money for this operation please deposit in your wallet'
+            ]);
+        }
     }
     public function show()
     {
@@ -153,10 +211,22 @@ class WalletController extends Controller
             ->where('user_id', $user_id)
             ->value('id');
         $balance = student::where('id', $studentId)->get(['wallet_balance','remain']);
-        $operation = about_wallet::where('student_id', $studentId)->get();
+        $withdraw = DB::table('about_wallets')
+        ->where('student_id', $studentId)
+        ->join('fees','fees.id','about_wallets.fee_id')
+        ->select('fees.*','about_wallets.*')
+        ->get();
+
+        $deposit= DB::table('about_wallets')
+        ->where('student_id', $studentId)
+        ->where('about_wallets.description','deposit')
+        ->select('about_wallets.*')
+        ->get();
+
         return response()->json([
             'balance' => $balance,
-            'operation' => $operation,
+            'withdraw' => $withdraw,
+            'deposit'=>$deposit
         ]);
     }
 

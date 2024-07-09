@@ -10,15 +10,14 @@ class Fee extends Model
     use HasFactory;
     protected $fillable = [
         'fee_name',
-        'benifats',
-        'student_id',
-
+        'benefits',
+        'type',
         'due_date'
     ];
 
-
-    public function student(){
-        return $this->belongsTo(student::class);
-    }
+    public static $rules = [
+        'type' => 'required|in:bus,school,other',
+    ];
+    
 
 }

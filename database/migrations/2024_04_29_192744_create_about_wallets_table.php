@@ -20,7 +20,8 @@ return new class extends Migration
             $table->foreign('student_id')->references('id')->on('students')->onDelete('cascade');
 
             $table->integer('amount')->nullable();
-            $table->string('description')->nullable();
+            $table->enum('description',['deposit','withdraw']);
+
             $table->timestamps();
         });
     }
