@@ -229,10 +229,12 @@ public function AddAccountTeacher(Request $request)
         $descriptions=[];
         foreach ($request->descriptions as $description_data) {
 
-            $photo_path = $description_data['photo_path']->store('images','public');
+            $image_path = null;
 
-            $image_path = asset('storage/'.$photo_path);
-
+            if (isset($description_data['photo_path'])) {
+                $photo_path = $description_data['photo_path']->store('images', 'public');
+                $image_path = asset('storage/' . $photo_path);
+            }
             $description = description_about_the_teacher::create([
                 'teacher_id' => $teacher->id,
                 'the_description' => $description_data['the_description'],

@@ -66,10 +66,13 @@ class SubjectsController extends Controller
         foreach ($request->units as $unit_data) {
 
 
-            $photo_subject_path = $unit_data['photo_path']->store('images','public');
-            $photoSubjectUrl = asset('storage/'.$photo_subject_path);
+            $photoSubjectUrl = null;
 
-
+            if (isset($unit_data['photo_path'])) {
+                $photo_subject_path = $unit_data['photo_path']->store('images', 'public');
+                $photoSubjectUrl = asset('storage/' . $photo_subject_path);
+            }
+            
             $subject_unit = subject_units::create([
                 'subject_id' => $subject->id,
                 'unit_number' => $unit_data['unit_number'],

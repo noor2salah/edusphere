@@ -10,6 +10,7 @@ use App\Http\Controllers\TeachersListController;
 use App\Http\Controllers\TestController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\WalletController;
+use App\Http\Controllers\ActivityController;
 use GuzzleHttp\Middleware;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -85,18 +86,20 @@ Route::group(["middleware" => "auth:api"], function () {
 });
 
 //class and subject api's
-Route::group(["middleware" => "auth:api"],function() {
 
+Route::post('store_class_subject', [SubjectsController::class, 'store_class_subject']);
 
 Route::get('show_class', [ClassController::class, 'show_all_classes']);
 Route::delete('class/{id}', [ClassController::class, 'detete_class']);
 Route::get('showStudentsByClass/{id}', [ClassController::class, 'showStudentsByClass']);
 Route::post('show_subjects_of_the_class', [SubjectsController::class, 'show_subjects_of_the_class']);
 Route::post('show_subject', [SubjectsController::class, 'show_subject']);
-Route::post('store', [ClassController::class, 'store'])->middleware('admin');
-Route::post('store_subject', [SubjectsController::class, 'store_subject'])->middleware('admin');
-Route::post('store_class_subject', [SubjectsController::class, 'store_class_subject'])->middleware('admin');
-Route::post('EditClass/{id}', [ClassController::class, 'EditClass'])->middleware('admin');
+Route::post('store', [ClassController::class, 'store']);
+Route::post('store_subject', [SubjectsController::class, 'store_subject']);
+Route::post('EditClass/{id}', [ClassController::class, 'EditClass']);
+
+Route::group(["middleware" => "auth:api"],function() {
+
 });
 
 
@@ -127,11 +130,14 @@ Route::post('show_about_teacher', [TeachersListController::class, 'show_about_te
 Route::group(["middleware" => "auth:api"], function () {
 
     Route::post('store_task',[TaskController::class,'store_task']);
+    Route::post('solve_task',[TaskController::class,'solve_task']);
+    Route::get('show_task/{id}',[TaskController::class,'show_task']);
+    Route::get('show_all_tasks_for_student',[TaskController::class,'show_all_tasks_for_student']);
+    Route::get('show_all_tasks_for_teacher',[TaskController::class,'show_all_tasks_for_teacher']);
+
 
 });
 
-Route::get('show_task/{id}',[TaskController::class,'show_task']);
-Route::post('solve_task/{id}',[TaskController::class,'solve_task']);
 
 
 //this Api's for wallet
@@ -142,4 +148,9 @@ Route::get('all_wallet_balance',[WalletController::class,'all_wallet_balance']);
 Route::group(["middleware" => "auth:api"], function () {
     Route::post('paid_fee',[WalletController::class,'paid_fees']);
     Route::get('show',[WalletController::class,'show']);
+});
+
+//activity
+Route::group(["middleware" => "auth:api"], function () {
+    Route::get('activity',[ActivityController::class,'activity']);
 });
