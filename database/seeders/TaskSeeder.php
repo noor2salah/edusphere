@@ -15,7 +15,7 @@ class TaskSeeder extends Seeder
 
 
         $task = Task::create([
-            'class_subject_id' => '1',
+            'class_subject_id' => '2',
             'total_grade'=>15
         ]);
 
