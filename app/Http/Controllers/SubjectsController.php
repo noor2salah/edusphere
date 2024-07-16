@@ -23,14 +23,6 @@ class SubjectsController extends Controller
             'about_subject' => 'required|string',
             'total_grade'=>'required|integer',
             'book_path' => 'required|mimes:pdf',
-            'photos'=>'required|array',
-            'photos.*.photo_for_subject'=>'nullable|image',
-            'units'=>'required|array',
-            'units.*.unit_number' => 'required|integer',
-            'units.*.title' => 'required|string',
-            'units.*.description' => 'required|string',
-            'units.*.photo_path' => 'nullable|image|max:2048'
-
         ]);
         if ($validator->fails()) {
             return response()->json($validator->errors());
@@ -62,44 +54,84 @@ class SubjectsController extends Controller
             'book_path' => $bookUrl,
         ]);
 
-        $subject_units=[];
-        foreach ($request->units as $unit_data) {
+        
+        return response()->json(['the subject added',$subject], 200);
+    }
+
+    public function store_photo_about_subject(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'subject_id'=>'required|integer',
+            'photo_for_subject'=>'nullable|image',
+
+        ]);
+        if ($validator->fails()) {
+            return response()->json($validator->errors());
+        }
+        $photo_path = $request->photo_for_subject->store('images','public');
+        $photoUrl = asset('storage/'.$photo_path);
+
+
+        $subject=subject::find($request->subject_id);
+        if(!$subject){
+            return response('this sunject does not exist');
+        }
+
+            $photo_about_subject = photos_about_subject::create([
+                'subject_id'=>$request->subject_id,
+                'photo_path'=>$photoUrl,
+            ]);
+        
+        return response()->json(['the photo added',$photo_about_subject], 200);
+    }
+
+    public function store_subject_units(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'subject_id'=>'required|integer',
+            'unit_number' => 'required|integer',
+            'title' => 'required|string',
+            'description' => 'required|string',
+            'photo_path' => 'nullable|image|max:2048'
+
+        ]);
+        if ($validator->fails()) {
+            return response()->json($validator->errors());
+        }
+        
+        $subject=subject::find($request->subject_id);
+        if(!$subject){
+            return response('this sunject does not exist');
+        }
 
 
             $photoSubjectUrl = null;
 
             if (isset($unit_data['photo_path'])) {
-                $photo_subject_path = $unit_data['photo_path']->store('images', 'public');
+                $photo_subject_path = $request->photo_path->store('images', 'public');
                 $photoSubjectUrl = asset('storage/' . $photo_subject_path);
             }
+
+            $subject_unit_check=DB::table('subject_units')
+            ->where('subject_units.subject_id',$request->subject_id)
+            ->where('subject_units.unit_number',$request->unit_number)
+            ->select('subject_units.*')
+            ->first();
+
+            if($subject_unit_check){
+                return response('this unit alredy exist');
+            }
+    
             
             $subject_unit = subject_units::create([
-                'subject_id' => $subject->id,
-                'unit_number' => $unit_data['unit_number'],
-                'title' => $unit_data['title'],
-                'description' => $unit_data['description'],
+                'subject_id' => $request->subject_id,
+                'unit_number' => $request->unit_number,
+                'title' => $request->title,
+                'description' => $request->description,
                 'photo_path' => $photoSubjectUrl
             ]);
 
-            $subject_units[] = $subject_unit;
-        }
-
-        $photos_about_subject=[];
-        foreach ($request->photos as $the_photo) {
-
-
-            $photo_path = $the_photo['photo_for_subject']->store('images','public');
-            $photoUrl = asset('storage/'.$photo_path);
-
-
-
-            $photo_about_subject = photos_about_subject::create([
-                'subject_id'=>$subject->id,
-                'photo_path'=>$photoUrl,
-            ]);
-            $photos_about_subject[] = $photo_about_subject;
-        }
-        return response()->json(['the subject added',$subject,$subject_units,$photos_about_subject], 200);
+        return response()->json(['the unit added',$subject_unit], 200);
     }
 
     public function store_class_subject(Request $request){

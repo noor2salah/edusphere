@@ -96,6 +96,8 @@ Route::post('show_subjects_of_the_class', [SubjectsController::class, 'show_subj
 Route::post('show_subject', [SubjectsController::class, 'show_subject']);
 Route::post('store', [ClassController::class, 'store']);
 Route::post('store_subject', [SubjectsController::class, 'store_subject']);
+Route::post('store_photo_about_subject', [SubjectsController::class, 'store_photo_about_subject']);
+Route::post('store_subject_units', [SubjectsController::class, 'store_subject_units']);
 Route::post('EditClass/{id}', [ClassController::class, 'EditClass']);
 
 Route::group(["middleware" => "auth:api"],function() {
