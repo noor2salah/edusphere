@@ -94,11 +94,11 @@ class ActivityController extends Controller
         ->where('task_grades.student_id',$student_id)
         ->avg('task_grades.grade');
 
-        $homework_percentage= 10 * $homework /$total_homework;
-        $quiz_percentage= 10 * $quiz /$total_quiz;
-        $exam_percentage= 10 * $exam /$total_exam;
-        $oral_exam_percentage= 10 * $oral_exam /$total_oral_exam;
-        $task_percentage= 60 * $task /$total_task;
+        $homework_percentage= 18 * $homework /$total_homework;
+        $quiz_percentage= 18 * $quiz /$total_quiz;
+        $exam_percentage= 18 * $exam /$total_exam;
+        $oral_exam_percentage= 18 * $oral_exam /$total_oral_exam;
+        $task_percentage= 28 * $task /$total_task;
 
  
         return response([
