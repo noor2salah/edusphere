@@ -216,6 +216,8 @@ class WalletController extends Controller
         ->where('about_wallets.student_id', $studentId)
         ->select('fees.*','about_wallets.*')
         ->get();
+    
+        
 
         $deposit= DB::table('about_wallets')
         ->where('student_id', $studentId)
