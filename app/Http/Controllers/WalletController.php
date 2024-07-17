@@ -124,8 +124,8 @@ class WalletController extends Controller
             return response()->json('You are not student', 403);
         }
 
+    
         $student_bus=$student->bus;
-
         if($student_bus){
             $the_fees=DB::table('fees')
             ->select('fees.*')
@@ -138,8 +138,23 @@ class WalletController extends Controller
             ->select('fees.*')
             ->get();
         }
-       return response($the_fees);
-       
+        $fees_array = $the_fees->toArray();
+
+        foreach ($fees_array as $key => $fee) {
+            $check = DB::table('about_wallets')
+                ->where('about_wallets.student_id', $student->id)
+                ->where('about_wallets.fee_id', $fee->id)
+                ->select('about_wallets.*')
+                ->first();
+    
+            if ($check) {
+                unset($fees_array[$key]);
+            }
+        }
+
+        $filtered_fees = collect($fees_array);
+
+        return response()->json($filtered_fees);       
     }
     public function paid_fees(Request $request)
     {
@@ -179,14 +194,10 @@ class WalletController extends Controller
         if($check){
             return response()->json('You already paid this fee , thanks', 403);
 
-        }
-
-       
+        }  
 
         $amount = $the_fee->benefits;
         $description='withdraw';
-
-
 
         // Check if the user has already paid the fee
         

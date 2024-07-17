@@ -19,5 +19,10 @@ class Fee extends Model
         'type' => 'required|in:bus,school,other',
     ];
     
+    public function aboutwallet(){
+        return $this->hasMany(about_wallet::class);
+    }
+
+
 
 }

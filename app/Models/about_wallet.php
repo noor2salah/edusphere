@@ -24,4 +24,8 @@ class about_wallet extends Model
     public function student(){
         return $this->belongsTo(student::class);
     }
+
+    public function fee(){
+        return $this->belongsTo(Fee::class);
+    }
 }
