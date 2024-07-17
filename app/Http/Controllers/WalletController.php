@@ -108,6 +108,39 @@ class WalletController extends Controller
             'data' => $wallet_info,
         ]);
     }
+
+    public function show_fees(){
+
+        $user_id = Auth::id();
+
+        $student_id=DB::table('students')
+        ->where('students.user_id',$user_id)
+        ->value('students.id');
+
+        $student = Student::find($student_id);
+
+        if (!$student) {
+
+            return response()->json('You are not student', 403);
+        }
+
+        $student_bus=$student->bus;
+
+        if($student_bus){
+            $the_fees=DB::table('fees')
+            ->select('fees.*')
+            ->get();
+        }
+
+        else{
+            $the_fees=DB::table('fees')
+            ->whereIn('fees.type', ['other', 'school'])
+            ->select('fees.*')
+            ->get();
+        }
+       return response($the_fees);
+       
+    }
     public function paid_fees(Request $request)
     {
       $request->validate([

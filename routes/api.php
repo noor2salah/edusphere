@@ -150,6 +150,8 @@ Route::get('all_wallet_balance',[WalletController::class,'all_wallet_balance']);
 Route::group(["middleware" => "auth:api"], function () {
     Route::post('paid_fee',[WalletController::class,'paid_fees']);
     Route::get('show',[WalletController::class,'show']);
+    Route::get('show_fees',[WalletController::class,'show_fees']);
+
 });
 
 //activity
