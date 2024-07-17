@@ -213,9 +213,11 @@ class WalletController extends Controller
         $balance = student::where('id', $studentId)->get(['wallet_balance','remain']);
         $withdraw = DB::table('about_wallets')
         ->where('student_id', $studentId)
-        ->join('fees', 'fees.id', '=', 'about_wallets.fee_id')
+        ->join('fees','fees.id','about_wallets.fee_id')
         ->select('fees.*','about_wallets.*')
         ->get();
+    
+        
 
         $deposit= DB::table('about_wallets')
         ->where('student_id', $studentId)
