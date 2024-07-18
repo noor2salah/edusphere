@@ -10,8 +10,8 @@ use App\Models\question_answer;
 use App\Models\user;
 use App\Models\student;
 use App\Models\class_subject;
-use Illuminate\support\Facades\Auth;
-use Illuminate\support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 class TaskController extends Controller
