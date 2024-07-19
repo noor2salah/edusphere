@@ -182,9 +182,8 @@ public function AddAccountTeacher(Request $request)
         'specialization' => 'required|string',
         'education' => 'required|string',
         'salary' => 'required',
-        'descriptions'=>'required|array',
-        'descriptions.*.the_description' => 'required',
-        'descriptions.*.photo_path' => 'nullable|image',
+        'cv'=> 'required|mimes:pdf',
+        
     ]);
 
     if ($validator->fails()) {
@@ -194,6 +193,9 @@ public function AddAccountTeacher(Request $request)
     $profile_picture_path = $request->file('profile_picture_path')->store('images','public');
 
     $imageUrl = asset('storage/'.$profile_picture_path);
+
+    $cv = $request->file('cv')->store('images','public');
+    $cvurl = asset('storage/'.$cv);
 
     try {
         DB::beginTransaction();
@@ -221,27 +223,11 @@ public function AddAccountTeacher(Request $request)
             'specialization' => $request->specialization,
             'salary' => $request->salary,
             'education' => $request->education,
-            'about'=>$request->about
+            'about'=>$request->about,
+            'cv'=>$cvurl
         ]);
 
 
-
-        $descriptions=[];
-        foreach ($request->descriptions as $description_data) {
-
-            $image_path = null;
-
-            if (isset($description_data['photo_path'])) {
-                $photo_path = $description_data['photo_path']->store('images', 'public');
-                $image_path = asset('storage/' . $photo_path);
-            }
-            $description = description_about_the_teacher::create([
-                'teacher_id' => $teacher->id,
-                'the_description' => $description_data['the_description'],
-                'photo_path' => $image_path,
-            ]);
-            $descriptions[] = $description;
-        }
 
         DB::commit();
 
@@ -251,7 +237,6 @@ public function AddAccountTeacher(Request $request)
         return response()->json([
             'message' => 'Register successfully',
             'teacher' => $teacher,
-            'description'=>$descriptions
         ]);
     }
     catch (\Exception $e) {
@@ -478,8 +463,7 @@ public function login(Request $request)
         $teacher= DB::table('teachers')
         ->where('teachers.id',$id)
         ->join('users','users.id','=','teachers.user_id')
-        ->join('description_about_the_teachers','description_about_the_teachers.teacher_id','=','teachers.id')
-        ->select('users.*','teachers.*','description_about_the_teachers.*')
+        ->select('users.*','teachers.*')
         ->get();
 
         return response()->json([
