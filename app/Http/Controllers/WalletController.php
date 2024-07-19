@@ -152,9 +152,11 @@ class WalletController extends Controller
             }
         }
 
-        $filtered_fees = collect($fees_array);
 
-        return response()->json($filtered_fees);       
+        $fees_list = array_values($fees_array);
+
+        return response()->json($fees_list);
+    
     }
     public function paid_fees(Request $request)
     {
