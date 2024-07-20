@@ -47,6 +47,7 @@ class AuthController extends Controller
         return response()->json([
             'message' => 'User not found',
         ]);
+    }
 
     if (!Hash::check($password, $user->password)) {
         return response()->json([
@@ -68,7 +69,7 @@ class AuthController extends Controller
         'message' => trans('Code has been sent'),
 
     ]);
-}
+
 }
 public function AddAccountStudent(Request $request)
 {
