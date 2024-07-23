@@ -11,6 +11,7 @@ use App\Http\Controllers\TestController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\WalletController;
 use App\Http\Controllers\ActivityController;
+use Database\Seeders\Class_subject;
 use GuzzleHttp\Middleware;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -157,4 +158,9 @@ Route::group(["middleware" => "auth:api"], function () {
 //activity
 Route::group(["middleware" => "auth:api"], function () {
     Route::get('activity',[ActivityController::class,'activity']);
+});
+//schedule
+Route::group(["middleware" => "auth:api"], function () {
+    Route::get('show_the_schedule_for_student',[SubjectsController::class,'show_the_schedule_for_student']);
+    Route::get('show_the_schedule_for_teacher',[SubjectsController::class,'show_the_schedule_for_teacher']);
 });
