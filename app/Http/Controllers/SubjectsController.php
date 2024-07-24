@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\photos_about_subject;
 use App\Models\subject;
+use App\Models\student;
+use App\Models\teacher;
 use App\Models\class_subject;
 use App\Models\subject_units;
 use Illuminate\Support\Facades\Auth;
@@ -192,7 +194,58 @@ class SubjectsController extends Controller
     }
 
 
-    public function show_the_schedule(){
+    public function show_the_schedule_for_student(){
+
+        $user_id = Auth::id();
+
+        $student_id=DB::table('students')
+        ->where('students.user_id',$user_id)
+        ->value('students.id');
+
+        $student = Student::find($student_id);
+
+        if (!$student) {
+
+            return response()->json('you are not auth as a student', 403);
+        }
+
+        $schedule=DB::table('class_subjects')
+        ->where('class_subjects.class_id',$student->class_id)
+        ->join('subjects','subjects.id','class_subjects.subject_id')
+        ->select('subjects.name','class_subjects.*')
+        ->get();
+
+        if(count($schedule)==0){
+            return response('there is no schedule');
+        }
+        return response($schedule);
+
+    }
+  
+    public function show_the_schedule_for_teacher(){
+        $user_id = Auth::id();
+
+        $teacher_id=DB::table('teachers')
+        ->where('teachers.user_id',$user_id)
+        ->value('teachers.id');
+
+        $teacher = teacher::find($teacher_id);
+
+        if (!$teacher) {
+
+            return response()->json('you are not auth as a teacher', 403);
+        }
+
+        $schedule=DB::table('class_subjects')
+        ->where('class_subjects.teacher_id',$teacher->id)
+        ->join('subjects','subjects.id','class_subjects.subject_id')
+        ->select('subjects.name','class_subjects.*')
+        ->get();
+
+        if(count($schedule)==0){
+            return response('there is no schedule');
+        }
+        return response($schedule);
 
     }
     public function show_all_the_schedules(){
