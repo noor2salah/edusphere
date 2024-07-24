@@ -179,13 +179,10 @@ Route::group(["middleware" => "auth:api"], function () {
 Route::group(["middleware" => "auth:api"], function () {
     Route::get('activity',[ActivityController::class,'activity']);
 });
-<<<<<<< HEAD
 
 
-=======
 //schedule
 Route::group(["middleware" => "auth:api"], function () {
     Route::get('show_the_schedule_for_student',[SubjectsController::class,'show_the_schedule_for_student']);
     Route::get('show_the_schedule_for_teacher',[SubjectsController::class,'show_the_schedule_for_teacher']);
 });
->>>>>>> 9e09dbad9ddcebeb965303fb26000feeb6778ae9
