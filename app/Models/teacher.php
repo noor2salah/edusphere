@@ -21,7 +21,8 @@ class teacher extends Model
         'specialization',
         'education',
         'salary',
-        'about'
+        'about',
+        'cv'
 
     ];
 
@@ -34,7 +35,5 @@ class teacher extends Model
     public function favorite_teacher(){
         return $this->hasMany(favorite_teacher::class);
     }
-    public function description_about_the_teacher(){
-        return $this->hasMany(description_about_the_teacher::class);
-    }
+   
 }

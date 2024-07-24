@@ -11,16 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('fees', function (Blueprint $table) {
-            $table->id();
-            $table->string('fee_name');
-
-            $table->integer('benefits')->default(0);
-            $table->enum('type',['bus','school','other']);
-
-            $table->date('due_date');
-            $table->timestamps();
+        Schema::table('about_wallets', function (Blueprint $table) {
+            $table->unsignedBigInteger('fee_id')->nullable();
+            $table->foreign('fee_id')->references('id')->on('fees')->onDelete('cascade');
+           
         });
+
     }
 
     /**
@@ -28,6 +24,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('fees');
+        Schema::table('about_wallet', function (Blueprint $table) {
+            //
+        });
     }
 };

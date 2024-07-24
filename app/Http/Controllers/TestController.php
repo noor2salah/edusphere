@@ -7,7 +7,7 @@ use App\Models\classs;
 use App\Models\class_subject;
 use App\Models\grade;
 use App\Models\test;
-use illuminate\support\Facades\Auth;
+use illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\Request;
@@ -78,7 +78,7 @@ class TestController extends Controller
         }
 
         $test = Test::create([
-            'class_subject_id' => $request->class_subject_id,
+            'class_subject_id' => $class_subject_id,
             'type' => $request->input('type'),
             'exam_paper_path' => $exam_path,
         ]);

@@ -11,15 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('fees', function (Blueprint $table) {
-            $table->id();
-            $table->string('fee_name');
+        Schema::table('students', function (Blueprint $table) {
+            $table->boolean('bus');
 
-            $table->integer('benefits')->default(0);
-            $table->enum('type',['bus','school','other']);
-
-            $table->date('due_date');
-            $table->timestamps();
         });
     }
 
@@ -28,6 +22,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('fees');
+        Schema::table('students', function (Blueprint $table) {
+            //
+        });
     }
 };

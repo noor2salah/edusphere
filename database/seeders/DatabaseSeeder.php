@@ -35,8 +35,9 @@ class DatabaseSeeder extends Seeder
         $this->call([
             TeacherSeeder::class,]); 
         $this->call([
-            Class_subject::class,]); 
+            Class_subject::class,]);        
+        $this->call([
+            TaskSeeder::class,]); 
               
-        
     }
 }

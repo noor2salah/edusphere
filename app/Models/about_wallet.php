@@ -13,10 +13,19 @@ class about_wallet extends Model
     protected $fillable = [
         'id',
         'student_id',
+        'fee_id',
         'amount',
         'description'
     ];
+
+    public static $rules = [
+        'description' => 'required|in:deposit,withdraw',
+    ];
     public function student(){
         return $this->belongsTo(student::class);
+    }
+
+    public function fee(){
+        return $this->belongsTo(Fee::class);
     }
 }

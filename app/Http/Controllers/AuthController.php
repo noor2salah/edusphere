@@ -48,7 +48,6 @@ class AuthController extends Controller
             'message' => 'User not found',
         ]);
     }
-
     if (!Hash::check($password, $user->password)) {
         return response()->json([
             'message' => 'Invalid password',
@@ -61,6 +60,7 @@ class AuthController extends Controller
         'password' => $password,
         'user_id' => $user->id,
     ]);
+
 
     // Send email to user
     Mail::to($request->email)->send(new VerfiyCode($codeData->code, $password));
@@ -91,6 +91,7 @@ public function AddAccountStudent(Request $request)
         'parent_name' => 'required|string',
         'parent_phone' => 'required|string|unique:students',
         'parent_email' => 'required|email|unique:students',
+        'bus'=>'required|boolean',
     ]);
 
     if ($validator->fails()) {
@@ -136,6 +137,7 @@ public function AddAccountStudent(Request $request)
             'parent_name' => $request->parent_name,
             'parent_phone' => $request->parent_phone,
             'parent_email' => $request->parent_email,
+            'bus'=>$request->bus
         ]);
 
         Event::dispatch(new StudentCreated($class));
@@ -180,9 +182,8 @@ public function AddAccountTeacher(Request $request)
         'specialization' => 'required|string',
         'education' => 'required|string',
         'salary' => 'required',
-        'descriptions'=>'required|array',
-        'descriptions.*.the_description' => 'required',
-        'descriptions.*.photo_path' => 'nullable|image',
+        'cv'=> 'required|mimes:pdf',
+
     ]);
 
     if ($validator->fails()) {
@@ -192,6 +193,9 @@ public function AddAccountTeacher(Request $request)
     $profile_picture_path = $request->file('profile_picture_path')->store('images','public');
 
     $imageUrl = asset('storage/'.$profile_picture_path);
+
+    $cv = $request->file('cv')->store('images','public');
+    $cvurl = asset('storage/'.$cv);
 
     try {
         DB::beginTransaction();
@@ -219,25 +223,11 @@ public function AddAccountTeacher(Request $request)
             'specialization' => $request->specialization,
             'salary' => $request->salary,
             'education' => $request->education,
-            'about'=>$request->about
+            'about'=>$request->about,
+            'cv'=>$cvurl
         ]);
 
 
-
-        $descriptions=[];
-        foreach ($request->descriptions as $description_data) {
-
-            $photo_path = $description_data['photo_path']->store('images','public');
-
-            $image_path = asset('storage/'.$photo_path);
-
-            $description = description_about_the_teacher::create([
-                'teacher_id' => $teacher->id,
-                'the_description' => $description_data['the_description'],
-                'photo_path' => $image_path,
-            ]);
-            $descriptions[] = $description;
-        }
 
         DB::commit();
 
@@ -247,7 +237,6 @@ public function AddAccountTeacher(Request $request)
         return response()->json([
             'message' => 'Register successfully',
             'teacher' => $teacher,
-            'description'=>$descriptions
         ]);
     }
     catch (\Exception $e) {
@@ -474,8 +463,7 @@ public function login(Request $request)
         $teacher= DB::table('teachers')
         ->where('teachers.id',$id)
         ->join('users','users.id','=','teachers.user_id')
-        ->join('description_about_the_teachers','description_about_the_teachers.teacher_id','=','teachers.id')
-        ->select('users.*','teachers.*','description_about_the_teachers.*')
+        ->select('users.*','teachers.*')
         ->get();
 
         return response()->json([

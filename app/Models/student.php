@@ -24,6 +24,7 @@ class student extends Model
         'class_id',
         'wallet_balance',
         'remain',
+        'bus',
         'enrollment_date',
         'parent_name',
         'parent_phone',
