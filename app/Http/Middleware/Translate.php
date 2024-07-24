@@ -38,7 +38,7 @@ class Translate
             if (is_array($value)) {
                 $data[$key] = $this->translateRecursive($value, $translator, $lang);
             } elseif (is_string($value)) {
-               
+
                 $data[$key] = $translator->setSource('en')->setTarget($lang)->translate($value);
             }
         }
