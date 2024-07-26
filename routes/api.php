@@ -11,6 +11,7 @@ use App\Http\Controllers\TestController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\WalletController;
 use App\Http\Controllers\ActivityController;
+use App\Http\Controllers\GradesController;
 use Database\Seeders\Class_subject;
 use GuzzleHttp\Middleware;
 use Illuminate\Http\Request;
@@ -127,19 +128,12 @@ Route::group(["middleware" => "auth:api"],function() {
 
 //test api's
 Route::group(["middleware"=>"translate"],function() {
-
-Route::post('show_test_by_class_level', [TestController::class, 'show_test_by_class_level']);
-Route::get('show', [TestController::class, 'index']);
-
-});
-Route::group(["middleware" => "auth:api"], function () {
-
-    Route::post('show_grade_by_type', [TestController::class, 'show_grade_by_type']);
-    Route::get('show_the_total_grade', [TestController::class, 'show_the_total_grade']);
-
-
+    Route::post('store_test', [TestController::class, 'store_test']);
+    Route::post('show_test_by_class_level', [TestController::class, 'show_test_by_class_level']);
+    Route::get('show', [TestController::class, 'index']);
 
 });
+
 
 //teacher list Api's
 Route::group(["middleware"=>"translate"],function ()  {
@@ -186,3 +180,23 @@ Route::group(["middleware" => "auth:api"], function () {
     Route::get('show_the_schedule_for_student',[SubjectsController::class,'show_the_schedule_for_student']);
     Route::get('show_the_schedule_for_teacher',[SubjectsController::class,'show_the_schedule_for_teacher']);
 });
+
+
+//grades
+Route::post('store_grade_test', [GradesController::class, 'store_grade_test']);
+Route::post('delete_grade', [GradesController::class, 'delete_grade']);
+
+
+Route::group(["middleware" => ["auth:api","translate"]], function () {
+
+    Route::post('show_grade_by_type', [GradesController::class, 'show_grade_by_type']);
+    Route::get('show_the_total_grade', [GradesController::class, 'show_the_total_grade']);
+    Route::get('rank',[GradesController::class,'rank']);
+   
+
+});
+
+
+
+/////////////////////////// 
+Route::get('show_question_id',[TaskController::class,'show_question_id']);

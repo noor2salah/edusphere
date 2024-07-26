@@ -267,4 +267,13 @@ class TaskController extends Controller
 
         return response($the_grade);
     }
+
+    public function show_question_id(){
+        $t=DB::table('task_questions')
+        ->select('task_questions.id')
+        ->get();
+
+        return response($t);
+
+    }
 }
