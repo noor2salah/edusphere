@@ -24,7 +24,7 @@ class AdvertisementController extends Controller
             'class_level' => 'required',
             'class_number' => 'required|numeric',
             'type'=>'required|string',
-            'photo_path' => 'nullable|image|max:2048',
+            'photo_path' => 'required|image|max:2048',
         ]);
         if ($validator->fails()) {
             return response()->json($validator->errors());
