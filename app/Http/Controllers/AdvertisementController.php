@@ -23,13 +23,19 @@ class AdvertisementController extends Controller
         $validator = Validator::make($request->all(), [
             'class_level' => 'required',
             'class_number' => 'required|numeric',
-            'title' => 'required',
-            'advertisement' => 'required',
+            'type'=>'required|string',
             'photo_path' => 'nullable|image|max:2048',
         ]);
         if ($validator->fails()) {
             return response()->json($validator->errors());
         }
+
+        $request->validate([
+            'class_level' => 'required|in:7,8,9',
+            'type' => 'required|in:bus,trips,wallet,exam,results,instuctions,other',
+        ]);
+       
+        
         $class_level = $request->input('class_level');
         $class_number = $request->input('class_number');
 
@@ -48,11 +54,11 @@ class AdvertisementController extends Controller
         }
         $advertisement = advertisement::create([
             'class_id' => $class->id,
-            'title' => $request->title,
-            'advertisement' => $request->advertisement,
+            'type'=>$request->type,
             'photo_path' => $imageUrl,
-              ]);
+        ]);
 
+      
         return response()->json([
             'advertisements' => $advertisement,
         ], 200);

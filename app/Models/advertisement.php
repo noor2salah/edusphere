@@ -12,9 +12,13 @@ class advertisement extends Model
     protected $fillable = [
         'id',
         'class_id',
-        'title',
-        'advertisement',
+        'type',
         'photo_path'
+    ];
+
+    public static $rules = [
+        'type' => 'required|in:bus,trips,wallet,exam,results,instuctions,other',
+
     ];
     public function class(){
         return $this->belongsTo(classs::class);
