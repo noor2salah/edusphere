@@ -11,12 +11,16 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('about_wallets', function (Blueprint $table) {
-            $table->unsignedBigInteger('fee_id')->nullable();
-            $table->foreign('fee_id')->references('id')->on('fees')->onDelete('cascade');
-           
-        });
-
+        if (Schema::hasTable('about_wallets')) {
+            Schema::table('about_wallets', function (Blueprint $table) {
+                if (!Schema::hasColumn('about_wallets', 'fee_id')) {
+                    $table->after('description', function (Blueprint $table) {
+                        $table->unsignedBigInteger('fee_id')->nullable();
+                        $table->foreign('fee_id')->references('id')->on('fees')->onDelete('cascade');
+                    });
+                }
+            });
+        }
     }
 
     /**
