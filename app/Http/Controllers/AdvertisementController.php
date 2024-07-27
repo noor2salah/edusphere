@@ -26,6 +26,7 @@ class AdvertisementController extends Controller
             'type'=>'required|string',
             'photo_path' => 'required|image|max:2048',
         ]);
+        
         if ($validator->fails()) {
             return response()->json($validator->errors());
         }
