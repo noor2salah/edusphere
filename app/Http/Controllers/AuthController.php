@@ -82,7 +82,7 @@ public function AddAccountStudent(Request $request)
         'password' => 'required|string',
         'phone' => 'required|string|unique:users',
         'address' => 'required|string',
-        'profile_picture_path' => 'required|image|mimes:jpg,png,jpeg,gif,svg|max:2048',
+        'profile_picture_path' => 'image|mimes:jpg,png,jpeg,gif,svg|max:2048',
         'gender' => 'required',
         'role' => 'required|string',
         'class_level' => 'required',
@@ -101,10 +101,21 @@ public function AddAccountStudent(Request $request)
     $class_level = $request->input('class_level');
     $class_number = $request->input('class_number');
 
-    $profile_picture_path = $request->file('profile_picture_path')->store('images','public');
+    if ($request->hasFile('profile_picture_path')){
 
-    $imageUrl = asset('storage/'.$profile_picture_path);
+        $profile_picture_path = $request->file('profile_picture_path')->store('images','public');
 
+        $imageUrl = asset('storage/'.$profile_picture_path);
+    }
+
+    else if(!$request->profile_picture_path && $request->gender=='female'){
+
+        $imageUrl = asset('storage/images/default female picture.jpg');
+    }
+    else if(!$request->profile_picture_path && $request->gender=='male'){
+
+        $imageUrl = asset('storage/images/default male picture.jpg');
+    }
     // Check if the class exists
     $class = Classs::where('class_level', $class_level)
         ->where('class_number', $class_number)
@@ -173,7 +184,7 @@ public function AddAccountTeacher(Request $request)
         'password' => 'required|string',
         'phone' => 'required|string|unique:users',
         'address' => 'required|string',
-        'profile_picture_path' => 'required|image|mimes:jpg,png,jpeg,gif,svg|max:2048',
+        'profile_picture_path' => 'image|mimes:jpg,png,jpeg,gif,svg|max:2048',
         'gender' => 'required',
         'role' => 'required|string',
         'about' => 'required',
@@ -190,10 +201,21 @@ public function AddAccountTeacher(Request $request)
         return response()->json($validator->errors(), 422);
     }
 
-    $profile_picture_path = $request->file('profile_picture_path')->store('images','public');
+    if ($request->hasFile('profile_picture_path')){
 
-    $imageUrl = asset('storage/'.$profile_picture_path);
+        $profile_picture_path = $request->file('profile_picture_path')->store('images','public');
 
+        $imageUrl = asset('storage/'.$profile_picture_path);
+    }
+
+    else if(!$request->profile_picture_path && $request->gender=='female'){
+
+        $imageUrl = asset('storage/images/default female picture.jpg');
+    }
+    else if(!$request->profile_picture_path && $request->gender=='male'){
+
+        $imageUrl = asset('storage/images/default male picture.jpg');
+    }
     $cv = $request->file('cv')->store('images','public');
     $cvurl = asset('storage/'.$cv);
 
@@ -250,6 +272,17 @@ public function AddAccountTeacher(Request $request)
 public function login(Request $request)
     {
         $verfiyCode = Verficationcode::query()->firstWhere('code', $request['code']);
+        if(empty($request['code'])&&empty($request['password'])){
+            return response()->json([
+                'message'=>'please enter your verification code and your password'
+            ]);
+        }
+        if(empty($request['password'])){
+            return response()->json([
+                'message'=>'please enter your password'
+            ]); 
+        }
+        
         if(empty($request['code'])){
             return response()->json([
                 'message'=>'please enter your verification code'
@@ -263,10 +296,7 @@ public function login(Request $request)
 
         $user = User::query()->find($verfiyCode->user_id);
 
-        if(empty($request['password'])){
-            return response()->json([
-                'message'=>'please enter your password'
-            ]); }
+        
 
         if (!$user || !Hash::check($request['password'], $user->password)) {
             return response()->json([
@@ -472,7 +502,19 @@ public function login(Request $request)
         ]);
     }
     public function EditProfilestudent( Request $request)
-    {
+    { $e = $request->all();
+        $validator = Validator::make($e, [
+            'email' => 'string|email|unique:users',
+            'password' => 'string',
+            'phone' => 'string|unique:users',
+            'address' => 'string',
+            'profile_picture_path' => 'image|mimes:jpg,png,jpeg,gif,svg|max:2048',
+            'parent_phone' => 'string|unique:students',
+            'parent_email' => 'email|unique:students',
+         
+    
+        ]);
+    
         $user_id = Auth::id();
 
         $student = Student::where('user_id', $user_id)->first();
@@ -492,15 +534,36 @@ public function login(Request $request)
             ], 404);
         }
 
-            //store in local storage
+        if($request->email){
+            $user->email = $request->email;
+
+        }
+        if($request->password){
+            $user->password = Hash::make($request->password);
+
+        }
+        if($request->phone){
+            $user->phone = $request->phone;
+
+        }
+        if ($request->hasFile('profile_picture_path')){
 
             $profile_picture_path = $request->file('profile_picture_path')->store('images','public');
-
+    
             $imageUrl = asset('storage/'.$profile_picture_path);
-            $user->profile_picture_path = $imageUrl;
-            $user->update($request->all());
-            $student->update($request->all());
 
+            $user->profile_picture_path = $imageUrl;
+
+        }
+
+        if($request->parent_phone){
+            $student->parent_phone = $request->parent_phone;
+
+        }
+        if($request->parent_email){
+            $student->parent_email = $request->parent_email;
+
+        }
         $user->save();
         $student->save();
 
@@ -508,11 +571,22 @@ public function login(Request $request)
             'message' => 'updated successfully',
             'user' => $user,
             'student' => $student,
-            'url' => $imageUrl
         ]);
     }
     public function EditProfileteacher( Request $request)
     {
+
+        $e = $request->all();
+        $validator = Validator::make($e, [
+            'email' => 'string|email|unique:users',
+            'password' => 'string',
+            'phone' => 'string|unique:users',
+            'address' => 'string',
+            'profile_picture_path' => 'image|mimes:jpg,png,jpeg,gif,svg|max:2048',
+            'cv'=> 'mimes:pdf',
+    
+        ]);
+    
         $user_id = Auth::id();
 
         $teacher=teacher::where('user_id', $user_id)->first();
@@ -529,12 +603,33 @@ public function login(Request $request)
                 'message' => 'user not found',
             ], 404);
         }
-        $profile_picture_path = $request->file('profile_picture_path')->store('images','public');
+        if($request->email){
+            $user->email = $request->email;
 
-        $imageUrl = asset('storage/'.$profile_picture_path);
-        $user->profile_picture_path = $imageUrl;
-        $user->update($request->all());
-        $teacher->update($request->all());
+        }
+        if($request->password){
+            $user->password = Hash::make($request->password);
+
+        }
+        if($request->phone){
+            $user->phone = $request->phone;
+
+        }
+        if($request->hasFile('cv')){
+            $cv = $request->file('cv')->store('images','public');
+            $cvurl = asset('storage/'.$cv);
+            $teacher->cv=$cvurl;
+        
+        }
+        if ($request->hasFile('profile_picture_path')){
+
+            $profile_picture_path = $request->file('profile_picture_path')->store('images','public');
+    
+            $imageUrl = asset('storage/'.$profile_picture_path);
+
+            $user->profile_picture_path = $imageUrl;
+
+        }
 
         $user->save();
         $teacher->save();
@@ -543,7 +638,6 @@ public function login(Request $request)
             'message' => 'updated successfully',
             'user' => $user,
             'teacher' => $teacher,
-            'url' => $imageUrl,
         ]);
     }
     public function profileAdmin()
