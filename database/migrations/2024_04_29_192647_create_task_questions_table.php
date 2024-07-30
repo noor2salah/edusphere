@@ -20,7 +20,7 @@ return new class extends Migration
             $table->foreign('task_id')->references('id')->on('tasks')->onDelete('cascade');
 
             $table->string('the_question')->nullable();
-            $table->integer('question_grade')->nullable();
+            $table->integer('question_grade')->default(0)->nullable();
 
             $table->timestamps();
         });

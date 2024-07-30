@@ -22,7 +22,7 @@ return new class extends Migration
             $table->unsignedBigInteger('test_id')->nullable();
             $table->foreign('test_id')->references('id')->on('tests')->onDelete('cascade');
 
-            $table->integer('grade')->nullable();
+            $table->integer('grade')->default(0)->nullable();
             $table->timestamps();
         });
     }

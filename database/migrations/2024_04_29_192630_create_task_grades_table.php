@@ -21,7 +21,7 @@ return new class extends Migration
             $table->unsignedBigInteger('task_id')->nullable();
             $table->foreign('task_id')->references('id')->on('tasks')->onDelete('cascade');
 
-            $table->integer('grade')->nullable();
+            $table->integer('grade')->default(0)->nullable();
             $table->timestamps();
         });
     }
