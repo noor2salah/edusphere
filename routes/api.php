@@ -104,6 +104,7 @@ Route::group(["middleware" => ["auth:api", "translate"]], function () {
 });
 
 //class and subject api's
+<<<<<<< HEAD
 Route::group(["middleware" => "auth:api"], function () {
 
     Route::post('store_class_subject', [SubjectsController::class, 'store_class_subject']);
@@ -118,6 +119,25 @@ Route::group(["middleware" => "auth:api"], function () {
     Route::post('store_photo_about_subject', [SubjectsController::class, 'store_photo_about_subject']);
     Route::post('store_subject_units', [SubjectsController::class, 'store_subject_units']);
     Route::post('EditClass/{id}', [ClassController::class, 'EditClass']);
+=======
+Route::get('show_all_class_levels', [ClassController::class, 'show_all_class_levels']);
+Route::post('show_all_class_numbers', [ClassController::class, 'show_all_class_numbers']);
+
+Route::post('store_class_subject', [SubjectsController::class, 'store_class_subject']);
+Route::delete('class/{id}', [ClassController::class, 'detete_class']);
+
+Route::group(["middleware" => "auth:api"],function() {
+
+
+Route::get('showStudentsByClass/{id}', [ClassController::class, 'showStudentsByClass']);
+Route::post('show_subjects_of_the_class', [SubjectsController::class, 'show_subjects_of_the_class']);
+Route::post('show_subject', [SubjectsController::class, 'show_subject']);
+Route::post('store', [ClassController::class, 'store']);
+Route::post('store_subject', [SubjectsController::class, 'store_subject']);
+Route::post('store_photo_about_subject', [SubjectsController::class, 'store_photo_about_subject']);
+Route::post('store_subject_units', [SubjectsController::class, 'store_subject_units']);
+Route::post('EditClass/{id}', [ClassController::class, 'EditClass']);
+>>>>>>> 3378323c498374e2dbd7fc644bcae6442a891a46
 });
 Route::group(["middleware" => "auth:api"], function () {
 });
@@ -147,7 +167,14 @@ Route::group(["middleware" => ["auth:api", "translate"]], function () {
     Route::get('show_all_tasks_for_student', [TaskController::class, 'show_all_tasks_for_student']);
     Route::get('show_all_tasks_for_teacher', [TaskController::class, 'show_all_tasks_for_teacher']);
 });
+<<<<<<< HEAD
 Route::group(["middleware" => "translate"], function () {
+=======
+Route::group(["middleware"=>"translate"],function() {
+    Route::post('show_question',[TaskController::class,'show_question']);
+    Route::get('show_task/{id}',[TaskController::class,'show_task']);
+    Route::post('solve_task/{id}',[TaskController::class,'solve_task']);
+>>>>>>> 3378323c498374e2dbd7fc644bcae6442a891a46
 
     Route::get('show_task/{id}', [TaskController::class, 'show_task']);
     Route::post('solve_task/{id}', [TaskController::class, 'solve_task']);
@@ -186,7 +213,16 @@ Route::group(["middleware" => ["auth:api", "translate"]], function () {
     Route::get('rank', [GradesController::class, 'rank']);
 });
 
+//students for addmin
 
+<<<<<<< HEAD
 
 /////////////////////////// 
 Route::get('show_question_id', [TaskController::class, 'show_question_id']);
+=======
+Route::get('number_of_total_school_students_for_admin', [StudentController::class, 'number_of_total_school_students_for_admin']);
+Route::post('number_of_total_class_level_students', [StudentController::class, 'number_of_total_class_level_students']);
+Route::post('number_of_total_class_students', [StudentController::class, 'number_of_total_class_students']);
+Route::post('show_students_in_class', [StudentController::class, 'show_students_in_class']);
+Route::post('show_student_profile', [StudentController::class, 'show_student_profile']);
+>>>>>>> 3378323c498374e2dbd7fc644bcae6442a891a46

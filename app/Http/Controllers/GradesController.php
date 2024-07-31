@@ -224,11 +224,16 @@ class GradesController extends Controller
         ->get();
 
 
-        $student_grade=[];
+        $grades=[];
+        $students=[];
+        $student_array=[];
         foreach($students_at_the_same_class as $student1){
          
         $student1_id=$student1->id;    
         $types = ['exam', 'quiz', 'homework', 'oral_exam'];
+
+
+        
 
         $avg_by_type = [];
         
@@ -264,12 +269,27 @@ class GradesController extends Controller
 
 
         }
-        $total_garde1=array_sum($total_garde);
-        $student_grade[$student1_id]=array_sum($student_grade_in_subject[$student1_id]);
+        $students[$student1_id] =
+             DB::table('users')
+                ->where('users.id', $student->user_id)
+                ->select('users.*')
+                ->get()
+                ->toArray();
 
+
+        $grades[$student1_id]=array_sum($student_grade_in_subject[$student1_id]);
+       
+        $student_array [$student1_id]= array_merge($students[$student1_id],  [$grades[$student1_id]]);
+
+        //$student_array[$student1_id]=array_push($student_array,$students[$student1_id],$grades[$student1_id]);
+      
         }
-     
-        return response([$total_garde1,$student_grade]);
+        //$student_array=array_merge($students,$grades);
+
+        $total_garde1=array_sum($total_garde);
+
+
+        return response([$total_garde1,$student_array]);
         
     }
 }

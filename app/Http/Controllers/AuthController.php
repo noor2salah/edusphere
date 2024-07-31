@@ -94,9 +94,16 @@ public function AddAccountStudent(Request $request)
         'bus'=>'required|boolean',
     ]);
 
+    $request->validate([
+        'class_level' => 'required|in:7,8,9',
+    ]);
+
+
     if ($validator->fails()) {
         return response()->json($validator->errors(), 422);
     }
+
+    
 
     $class_level = $request->input('class_level');
     $class_number = $request->input('class_number');
