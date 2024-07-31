@@ -46,12 +46,38 @@ class ClassController extends Controller
         ]);
         return response()->json($class,200);
     }
-    public function show_all_classes()
+    public function show_all_class_levels()
     {
-        $class = classs::all();
+        $class = DB::table('classses')
+        ->select('classses.class_level')
+        ->distinct()
+        ->get();
         return response()->json($class);
 
     }
+    public function show_all_class_numbers(Request $request)
+    {
+
+        $validator = Validator::make($request->all(),[
+            'class_level' =>'required|integer',
+        ]);
+
+        if($validator->fails())
+        {
+            return response()->json($validator->errors());
+        }
+        $request->validate([
+            'class_level' => 'required|in:7,8,9',
+        ]);
+        
+        $class = DB::table('classses')
+        ->where('classses.class_level',$request->class_level)
+        ->select('classses.class_number')
+        ->get();
+        return response()->json($class);
+
+    }
+    
     public function detete_class($id)
     {
         $classes = classs::find($id);

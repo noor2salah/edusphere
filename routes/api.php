@@ -106,12 +106,15 @@ Route::group(["middleware" => ["auth:api","translate"]], function () {
 });
 
 //class and subject api's
-Route::group(["middleware" => "auth:api"],function() {
+Route::get('show_all_class_levels', [ClassController::class, 'show_all_class_levels']);
+Route::post('show_all_class_numbers', [ClassController::class, 'show_all_class_numbers']);
 
 Route::post('store_class_subject', [SubjectsController::class, 'store_class_subject']);
-
-Route::get('show_class', [ClassController::class, 'show_all_classes']);
 Route::delete('class/{id}', [ClassController::class, 'detete_class']);
+
+Route::group(["middleware" => "auth:api"],function() {
+
+
 Route::get('showStudentsByClass/{id}', [ClassController::class, 'showStudentsByClass']);
 Route::post('show_subjects_of_the_class', [SubjectsController::class, 'show_subjects_of_the_class']);
 Route::post('show_subject', [SubjectsController::class, 'show_subject']);
@@ -155,9 +158,9 @@ Route::group(["middleware" => ["auth:api","translate"]], function () {
 
 });
 Route::group(["middleware"=>"translate"],function() {
-
-Route::get('show_task/{id}',[TaskController::class,'show_task']);
-Route::post('solve_task/{id}',[TaskController::class,'solve_task']);
+    Route::post('show_question',[TaskController::class,'show_question']);
+    Route::get('show_task/{id}',[TaskController::class,'show_task']);
+    Route::post('solve_task/{id}',[TaskController::class,'solve_task']);
 
 });
 //this Api's for wallet
@@ -196,7 +199,10 @@ Route::group(["middleware" => ["auth:api","translate"]], function () {
 
 });
 
+//students for addmin
 
-
-/////////////////////////// 
-Route::get('show_question_id',[TaskController::class,'show_question_id']);
+Route::get('number_of_total_school_students_for_admin', [StudentController::class, 'number_of_total_school_students_for_admin']);
+Route::post('number_of_total_class_level_students', [StudentController::class, 'number_of_total_class_level_students']);
+Route::post('number_of_total_class_students', [StudentController::class, 'number_of_total_class_students']);
+Route::post('show_students_in_class', [StudentController::class, 'show_students_in_class']);
+Route::post('show_student_profile', [StudentController::class, 'show_student_profile']);

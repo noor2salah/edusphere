@@ -103,6 +103,7 @@ class TaskController extends Controller
             return response()->json('You are not student', 403);
         }
 
+       
         
         $tasks=DB::table('tasks')
         ->join('class_subjects','class_subjects.id','tasks.class_subject_id')
@@ -114,7 +115,36 @@ class TaskController extends Controller
         ->select('tasks.*','subjects.name','users.first_name','users.last_name')
         ->get();
 
-        return response($tasks);
+
+        $solved_tasks=[];
+        $unsolved_tasks=[];
+        $grades=[];
+        foreach($tasks as $task){
+
+            $task_id=$task->id;
+
+            $check=DB::table('task_grades')
+            ->where('task_grades.task_id',$task_id)
+            ->join('students','students.id','task_grades.student_id')
+            ->where('students.id',$student_id)
+            ->value('task_grades.grade');
+
+            if ($check) {
+                $solved_tasks[$task_id]=$task;
+                $grades[$task_id]=$check;
+
+            }
+            else{
+                $unsolved_tasks[$task_id]=$task;
+            }
+
+        }
+
+        return response([
+            'solved'=>$solved_tasks,
+            'grades'=>$grades,
+            'unsolved'=>$unsolved_tasks
+        ]);
 
     }
     public function show_all_tasks_for_teacher(){
@@ -231,6 +261,8 @@ class TaskController extends Controller
 
         $check2=DB::table('task_grades')
         ->where('task_grades.task_id',$request->task_id)
+        ->join('students','students.id','task_grades.student_id')
+        ->where('students.id',$student_id)
         ->select('task_grades.*')
         ->get();
 
@@ -244,6 +276,7 @@ class TaskController extends Controller
         ->get();
 
         $the_grade=0;
+        $correct_answer=[];
 
         foreach ($task_questions as $i => $task_question) {
             $answer_id = $request->answers[$i]['answer_id'];
@@ -256,6 +289,7 @@ class TaskController extends Controller
 
             if ($the_answer && $the_answer->correct_answer ==1) {
                 $the_grade += $task_question->question_grade;
+                $correct_answer[$i]=$the_answer;
             }
         }
 
@@ -265,12 +299,23 @@ class TaskController extends Controller
             'grade'=>$the_grade
         ]);
 
-        return response($the_grade);
+        return response([$the_grade,$correct_answer]);
     }
 
-    public function show_question_id(){
+    public function show_question(Request $request){
+
+        $validator = Validator::make($request->all(), [
+            'question_id'=>'required|integer',  
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 400);
+        }
+
         $t=DB::table('task_questions')
-        ->select('task_questions.id')
+        ->where('task_questions.id',$request->question_id)
+        ->join('question_answers','question_answers.task_question_id','task_questions.id')
+        ->select('task_questions.*','question_answers.*')
         ->get();
 
         return response($t);
