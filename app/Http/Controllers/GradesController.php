@@ -224,17 +224,29 @@ class GradesController extends Controller
         ->get();
 
 
-        $grades=[];
-        $students=[];
-        $student_array=[];
+        $students=DB::table('students')
+        ->where('students.class_id',$student->class_id)
+        ->join('users','users.id', 'students.user_id')
+        ->select('students.id','users.first_name','users.last_name','users.profile_picture_path')
+        ->get();
+        
+        $students = $students->keyBy('id')->toArray();
+
+        $grades1=[];
+        $mine=[];
         foreach($students_at_the_same_class as $student1){
-         
+       
+
         $student1_id=$student1->id;    
         $types = ['exam', 'quiz', 'homework', 'oral_exam'];
 
+        if($student1_id==$student_id){
+            $mine[$student1_id]=true;
 
-        
-
+        }
+        else{      
+            $mine[$student1_id]=false;
+        }
         $avg_by_type = [];
         
 
@@ -266,30 +278,23 @@ class GradesController extends Controller
 
             }
             $student_grade_in_subject[$student1_id][$subjectName]=array_sum($avg_by_type[$student1_id][$subjectName]);
-
-
         }
-        $students[$student1_id] =
-             DB::table('users')
-                ->where('users.id', $student->user_id)
-                ->select('users.*')
-                ->get()
-                ->toArray();
-
-
-        $grades[$student1_id]=array_sum($student_grade_in_subject[$student1_id]);
        
-        $student_array [$student1_id]= array_merge($students[$student1_id],  [$grades[$student1_id]]);
+        $grades1[$student1_id]=array_sum($student_grade_in_subject[$student1_id]);
+        arsort($grades1);
 
-        //$student_array[$student1_id]=array_push($student_array,$students[$student1_id],$grades[$student1_id]);
-      
         }
-        //$student_array=array_merge($students,$grades);
 
         $total_garde1=array_sum($total_garde);
 
+        $response_data = [
+            'total_grade' => $total_garde1,
+            'grades' => $grades1,
+            'mine'=>$mine,
+            'students' => $students
+        ];
 
-        return response([$total_garde1,$student_array]);
+        return response()->json($response_data, 200, [], JSON_FORCE_OBJECT);
         
     }
 }
