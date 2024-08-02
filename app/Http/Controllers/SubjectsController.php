@@ -258,7 +258,36 @@ class SubjectsController extends Controller
         $subjects = DB::table('subjects')
             ->where('the_class', $the_class)
             ->get();
-        return response()->json($subjects, 200);
+
+        $subject_units=[];  
+        $subject_photos=[]; 
+        $subjects1=[]; 
+        foreach($subjects as $subject){
+            $id=$subject->id;
+
+            $subject_units[$id] = DB::table('subjects')
+            ->where('subjects.id', $id)
+            ->join('subject_units', 'subject_units.subject_id', '=', 'subjects.id')
+            ->select('subject_units.*')
+            ->get();
+
+            
+            $subject_photos[$id] = DB::table('subjects')
+            ->where('subjects.id', $id)
+            ->join('photos_about_subjects','photos_about_subjects.subject_id','subjects.id')
+            ->select('photos_about_subjects.*')
+            ->get();
+
+
+            $subjects1[$id]=[
+                'subject'=>$subject,
+                'subject units'=>$subject_units[$id],
+                'subject_photos'=>$subject_photos[$id]
+            ];
+    
+        }
+
+        return response()->json($subjects1, 200);
     }
     public function show_subject(Request $request)
     {
