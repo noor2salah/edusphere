@@ -93,7 +93,7 @@ class ClassController extends Controller
             'message' => 'class deleted successfully',
         ]);
     }
-    public function showStudentsByClass($id,Request $request)
+    /*public function showStudentsByClass($id,Request $request)
     {
         $students = student::where('class_id', $id)->with('class','user')->get();
 
@@ -101,7 +101,8 @@ class ClassController extends Controller
             'data' => $students,
             'status' => true,
         ], 200);
-    }
+
+        }*/
     public function EditClass($id,Request $request)
     {
         $class = classs::find($id);

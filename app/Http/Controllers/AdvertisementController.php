@@ -128,20 +128,5 @@ class AdvertisementController extends Controller
             'message' => 'advertisements deleted successfully',
         ]);
     }
-    public function SearchAdvertisement($title)
-    {
-        $advertisement = advertisement::where('title', 'like', '%' . $title . '%')
-        ->get();
-
-    if ($advertisement) {
-        return response()->json([
-            'advertisement'=>$advertisement
-        ]);
-    }
-    return response()->json(
-        [
-            'message' => 'not found !'
-        ]);
-    }
 }
 
