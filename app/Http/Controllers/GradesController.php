@@ -297,8 +297,16 @@ class GradesController extends Controller
                 $students[$student2_id]
             ];
         }
-
-        return response()->json(array_values((array) $st));
+        arsort($st);
+        $convertedData = array_map(function($item) {
+            return [
+                'total_grade' => $item[0],
+                'grade' => $item[1],
+                'mine' => $item[2],
+                'student' => $item[3]
+            ];
+        },$st);
+        return response()->json(array_values((array) $convertedData));
         
     }
 }
