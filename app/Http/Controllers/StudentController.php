@@ -99,7 +99,8 @@ class StudentController extends Controller
 
         $students=DB::table('students')
         ->where('students.class_id',$class_id)
-        ->select('students.*')
+        ->join('users','users.id','students.user_id')
+        ->select('users.*')
         ->get();
 
         return response($students);

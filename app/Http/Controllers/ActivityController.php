@@ -71,12 +71,19 @@ class ActivityController extends Controller
         ->where('tests.type','homework')
         ->avg('grades.grade');
 
+        if(!$homework){
+            $homework=0;
+        }
+
         $exam=DB::table('grades')
         ->where('grades.student_id',$student_id)
         ->join('tests','tests.id','grades.test_id')
         ->where('tests.type','exam')
         ->avg('grades.grade');
 
+        if(!$exam){
+            $exam=0;
+        }
 
         $oral_exam=DB::table('grades')
         ->where('grades.student_id',$student_id)
@@ -84,15 +91,27 @@ class ActivityController extends Controller
         ->where('tests.type','oral_exam')
         ->avg('grades.grade');
 
+        if(!$oral_exam){
+            $oral_exam=0;
+        }
+        
         $quiz=DB::table('grades')
         ->where('grades.student_id',$student_id)
         ->join('tests','tests.id','grades.test_id')
         ->where('tests.type','quiz')
         ->avg('grades.grade');
 
+        if(!$quiz){
+            $quiz=0;
+        }
+        
         $task=DB::table('task_grades')
         ->where('task_grades.student_id',$student_id)
         ->avg('task_grades.grade');
+
+        if(!$task){
+            $task=0;
+        }
 
         $homework_percentage= 18 * $homework /$total_homework;
         $quiz_percentage= 18 * $quiz /$total_quiz;
