@@ -49,6 +49,8 @@ Route::group(["middleware" => "translate"], function () {
     Route::post('passwordforget', [AuthController::class, 'userforgetpassword']);
     Route::post('checkcodepassword', [AuthController::class, 'usercheckcode']);
     Route::post('resetpassword', [AuthController::class, 'userresetpassword']);
+    Route::get('profileteacher/{id}', [AuthController::class, 'profileteacher']);
+
 });
 //----------
 
@@ -56,7 +58,6 @@ Route::group(["middleware" => ["auth:api", "translate"]], function () {
 
     Route::get('logout', [AuthController::class, 'logout']);
     Route::get('profilestudent/{id}', [AuthController::class, 'profileStudent']);
-    Route::get('profileteacher/{id}', [AuthController::class, 'profileteacher']);
     Route::post('EditProfile', [AuthController::class, 'EditProfilestudent']);
     Route::post('EditProfileteacher', [AuthController::class, 'EditProfileteacher']);
     Route::post('EditprofileAdmin', [AuthController::class, 'EditprofileAdmin'])->middleware('admin');
@@ -109,12 +110,12 @@ Route::post('show_all_class_numbers', [ClassController::class, 'show_all_class_n
 
 Route::post('store_class_subject', [SubjectsController::class, 'store_class_subject']);
 Route::delete('class/{id}', [ClassController::class, 'detete_class']);
+Route::post('show_subjects_of_the_class', [SubjectsController::class, 'show_subjects_of_the_class']);
 
 Route::group(["middleware" => "auth:api"],function() {
 
 
 Route::get('showStudentsByClass/{id}', [ClassController::class, 'showStudentsByClass']);
-Route::post('show_subjects_of_the_class', [SubjectsController::class, 'show_subjects_of_the_class']);
 Route::post('show_subject', [SubjectsController::class, 'show_subject']);
 Route::post('store', [ClassController::class, 'store']);
 Route::post('store_subject', [SubjectsController::class, 'store_subject']);

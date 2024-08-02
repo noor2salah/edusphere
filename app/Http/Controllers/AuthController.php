@@ -117,11 +117,11 @@ public function AddAccountStudent(Request $request)
 
     else if(!$request->profile_picture_path && $request->gender=='female'){
 
-        $imageUrl = asset('storage/images/default female picture.jpg');
+        $imageUrl = asset('storage/images/default_female_picture.jpg');
     }
     else if(!$request->profile_picture_path && $request->gender=='male'){
 
-        $imageUrl = asset('storage/images/default male picture.jpg');
+        $imageUrl = asset('storage/images/default_male_picture.jpg');
     }
     // Check if the class exists
     $class = Classs::where('class_level', $class_level)
@@ -217,11 +217,11 @@ public function AddAccountTeacher(Request $request)
 
     else if(!$request->profile_picture_path && $request->gender=='female'){
 
-        $imageUrl = asset('storage/images/default female picture.jpg');
+        $imageUrl = asset('storage/images/default_female_picture.jpg');
     }
     else if(!$request->profile_picture_path && $request->gender=='male'){
 
-        $imageUrl = asset('storage/images/default male picture.jpg');
+        $imageUrl = asset('storage/images/default_male_picture.jpg');
     }
     $cv = $request->file('cv')->store('images','public');
     $cvurl = asset('storage/'.$cv);
