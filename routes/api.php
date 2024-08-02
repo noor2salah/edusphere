@@ -193,7 +193,6 @@ Route::group(["middleware" => ["auth:api", "translate"]], function () {
     Route::get('rank', [GradesController::class, 'rank']);
 });
 
-//students for addmin
 
 Route::get('number_of_total_school_students_for_admin', [StudentController::class, 'number_of_total_school_students_for_admin']);
 Route::post('number_of_total_class_level_students', [StudentController::class, 'number_of_total_class_level_students']);
