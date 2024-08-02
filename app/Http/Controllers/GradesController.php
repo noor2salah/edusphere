@@ -284,21 +284,17 @@ class GradesController extends Controller
         arsort($grades1);
 
         }
+
         $total_garde1=array_sum($total_garde);
 
-        $st=[];
+        $response_data = [
+            'total_grade' => $total_garde1,
+            'grades' => $grades1,
+            'mine'=>$mine,
+            'students' => $students
+        ];
 
-        foreach($students as $student2){
-            $student2_id=$student2->id;
-            $st[$student2_id]=[
-                $total_garde1,
-                $grades1[$student2_id],
-                $mine[$student2_id],
-                $students[$student2_id]
-            ];
-        }
-
-        return response()->json(array_values((array) $st));
+        return response()->json($response_data, 200, [], JSON_FORCE_OBJECT);
         
     }
 }
