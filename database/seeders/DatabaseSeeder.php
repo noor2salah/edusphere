@@ -29,8 +29,6 @@ class DatabaseSeeder extends Seeder
         $this->call([
             Subject_units::class,]); 
         $this->call([
-            Subject_photos::class,]); 
-        $this->call([
             StudentSeeder::class,]); 
         $this->call([
             TeacherSeeder::class,]); 

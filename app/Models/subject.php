@@ -18,6 +18,7 @@ class subject extends Model
         'the_class',
         'total_grade',
         'about_subject',
+        'photo_path',
         'book_path'
     ];
 
@@ -28,9 +29,7 @@ class subject extends Model
     public function class_subject(){
         return $this->hasMany(class_subject::class);
     }
-    public function photos_about_subject(){
-        return $this->hasMany(photos_about_subject::class);
-    }
+   
     public function subject_unit(){
         return $this->hasMany(subject_units::class);
     }
