@@ -77,7 +77,17 @@ class ClassController extends Controller
         return response()->json($class);
 
     }
-    
+    public function show_all_classes()
+    {
+        $class = DB::table('classses')
+        ->select('classses.*')
+        ->get();
+        if(count($class)==0){
+            return response('there is no teachers');
+        }
+        return response()->json($class);
+
+    }
     public function detete_class($id)
     {
         $classes = classs::find($id);

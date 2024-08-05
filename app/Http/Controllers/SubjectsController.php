@@ -161,6 +161,15 @@ class SubjectsController extends Controller
             return response('already exist');
         }
 
+        $teacher=DB::table('teachers')
+        ->where('teachers.id',$request->teacher_id)
+        ->select('teachers.*')
+        ->first();
+
+        if(!$teacher){
+            return response('there is no teacher');
+        }
+
         $class_subject = class_subject::create([
             'class_id' => $request->class_id,
             'teacher_id' =>  $request->teacher_id,
@@ -212,6 +221,15 @@ class SubjectsController extends Controller
         $subjects = DB::table('subjects')
             ->where('the_class', $the_class)
             ->get();
+        return response()->json($subjects, 200);
+    }
+    public function show_all_subjects(Request $request)
+    {
+        $subjects = DB::table('subjects')
+        ->get();
+        if(count($subjects)==0){
+            return response('there is no teachers');
+        }
         return response()->json($subjects, 200);
     }
     public function show_subject(Request $request)

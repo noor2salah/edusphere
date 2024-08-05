@@ -49,13 +49,36 @@ class TestController extends Controller
     }
     public function store_test(Request $request)
     {
-        $class_level = $request->input('class_level');
-        $class_number = $request->input('class_number');
-        $exam_paper_path = $request->file('exam_paper_path')->store('images','public');
-        $exam_path = asset('storage/'.$exam_paper_path);
-        $subject_name = $request->input('subject_name');
+        $validator = Validator::make($request->all(), [
+            'class_level' => 'required|integer',
+            'class_number' => 'required|integer',
+            'subject_name'=> 'required|string',
+            'exam_paper_path'=> 'nullable|image|max:2048',
+        ]);
+        
+        $request->validate([
+            'class_level' => 'required|in:7,8,9',
+        ]);
+        $request->validate([
+            'type' => 'required|in:exam,oral_exam,homework,quiz',
+        ]);
 
 
+        if ($validator->fails()) {
+            return response()->json($validator->errors());
+        }
+
+        $photoUrl = null;
+
+          
+        if ($request->hasFile('exam_paper_path')){
+            $exam_paper_path = $request->exam_paper_path->store('images', 'public');
+            $photoUrl = asset('storage/' . $exam_paper_path);
+        }
+
+        $class_level = $request->class_level;
+        $class_number = $request->class_number;
+        $subject_name = $request->subject_name;
 
 
         $class_id = DB::table('classses')
@@ -80,7 +103,7 @@ class TestController extends Controller
         $test = Test::create([
             'class_subject_id' => $class_subject_id,
             'type' => $request->input('type'),
-            'exam_paper_path' => $exam_path,
+            'exam_paper_path' => $photoUrl,
         ]);
 
         return response()->json([
@@ -106,5 +129,4 @@ class TestController extends Controller
             'message' => 'tests deleted successfully',
         ]);
     }
-    //grade test methods
-   }
+}

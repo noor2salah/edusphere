@@ -135,6 +135,7 @@ public function AddAccountStudent(Request $request)
    //        $user= User::create([
         // Create user
         $user = User::create([
+            'uid'=>null,
             'first_name' => $request->first_name,
             'last_name' => $request->last_name,
             'birthdate' => $request->birthdate,
@@ -676,5 +677,40 @@ public function login(Request $request)
                 'admin' => $user,
                 'url' => $imageUrl,
             ]);
+    }
+
+    public function add_uid_to_user(Request $request){
+
+        $e = $request->all();
+        $validator = Validator::make($e, [
+            'uid'=>'required|numeric',
+            'email' => 'required|string|email',
+    
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 422);
         }
+
+        $user = User::where('email', $request->email)->first();
+
+        if (!$user) {
+            return response()->json([
+                'message' => 'user not found',
+        ], 404);
+        }
+
+        $user->uid = $request->uid;
+
+        $user->save();
+
+        return response()->json([
+            'message' => 'added successfully',
+    
+        ], 200);
+    
+
+    }
+
+
 }
