@@ -284,9 +284,15 @@ class GradesController extends Controller
         arsort($grades1);
 
         }
+
         $total_garde1=array_sum($total_garde);
 
-        $st=[];
+        $response_data = [
+            'total_grade' => $total_garde1,
+            'grades' => $grades1,
+            'mine'=>$mine,
+            'students' => $students
+        ];
 
         foreach($students as $student2){
             $student2_id=$student2->id;
