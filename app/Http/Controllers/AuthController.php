@@ -437,54 +437,8 @@ public function login(Request $request)
             'message' => 'password has been successfully reset',
         ]);
     }
-    // public function userResetPassword(Request $request)
-    // {
-    //     $request->validate([
-    //         'code'=>'required|exists:reset_code_passwords',
-    //         'password'=>'required',
-    //         'confirmed_password'=>'required|same:password',
-    //     ]);
+    public function profileStudent($id){
 
-    //     $code = $request->input('code');
-
-    //     if(!$passwordReset = DB::table('reset_code_passwords')->where('code',$code)->first())
-    //     {
-    //         return response()->json([
-    //             'message'=>'invalid code'
-    //         ],400);
-
-    //     }
-
-    //     if(!$user = User::where('email', $passwordReset->email)->first())
-    //     {
-    //         return response()->json([
-    //             'message'=>'user does not exist'
-    //         ],404 );
-    //     }
-    //     if(!$verfiyCode = Verficationcode::where('email', $passwordReset->email)->first())
-    //     {
-    //         return response()->json([
-    //             'message'=>'verfiy code is invalid'
-    //         ],404 );
-    //     }
-
-    //     $password = bcrypt($request->input('password'));
-    //     $confirmed_password = bcrypt($request->input('confirmed_password'));
-
-    //     $user->password = $password;
-    //     $verfiyCode->password = $password;
-    //     $user->save();
-
-    //     $verfiyCode->save();
-    //     //delete current code
-    //     //$passwordReset->delete();
-
-    //     return response()->json([
-    //         'message' => 'password has been successfully reset',
-    //     ]);
-    // }
-    public function profileStudent($id)
-    {
         $student = DB::table('students')
         ->where('students.id',$id)
         ->join('users','users.id','=','students.user_id')
@@ -683,7 +637,7 @@ public function login(Request $request)
 
         $e = $request->all();
         $validator = Validator::make($e, [
-            'uid'=>'required|numeric',
+            'uid'=>'required|string',
             'email' => 'required|string|email',
     
         ]);
@@ -709,6 +663,34 @@ public function login(Request $request)
     
         ], 200);
     
+    }
+
+    public function get_data_from_uid(Request $request){
+        $e = $request->all();
+        $validator = Validator::make($e, [
+            'uid'=>'required|string',
+    
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 422);
+        }
+
+        $user = DB::table('users')->
+        where('uid', $request->uid)
+        ->select('users.first_name','users.last_name','users.profile_picture_path')
+        ->first();
+
+        if (!$user) {
+            return response()->json([
+                'message' => 'user not found',
+        ], 404);
+        }
+
+        return response()->json([
+            $user
+        ], 200);
+
 
     }
 

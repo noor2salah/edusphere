@@ -53,6 +53,7 @@ Route::group(["middleware" => "translate"], function () {
     Route::get('profileteacher/{id}', [AuthController::class, 'profileteacher']);
     Route::get('profilestudent/{id}', [AuthController::class, 'profileStudent']);
     Route::post('add_uid_to_user', [AuthController::class, 'add_uid_to_user']);
+    Route::post('get_data_from_uid', [AuthController::class, 'get_data_from_uid']);
 
 });
 //----------
