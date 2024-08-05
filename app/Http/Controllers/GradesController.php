@@ -294,7 +294,25 @@ class GradesController extends Controller
             'students' => $students
         ];
 
-        return response()->json($response_data, 200, [], JSON_FORCE_OBJECT);
+        foreach($students as $student2){
+            $student2_id=$student2->id;
+            $st[$student2_id]=[
+                $total_garde1,
+                $grades1[$student2_id],
+                $mine[$student2_id],
+                $students[$student2_id]
+            ];
+        }
+        arsort($st);
+        $convertedData = array_map(function($item) {
+            return [
+                'total_grade' => $item[0],
+                'grade' => $item[1],
+                'mine' => $item[2],
+                'student' => $item[3]
+            ];
+        },$st);
+        return response()->json(array_values((array) $convertedData));
         
     }
 }
