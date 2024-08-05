@@ -24,6 +24,7 @@ class SubjectsController extends Controller
             'the_class' => 'required|integer',
             'about_subject' => 'required|string',
             'total_grade'=>'required|integer',
+            'photo_path'=> 'nullable|image|max:2048',
             'book_path' => 'required|mimes:pdf',
         ]);
         if ($validator->fails()) {
@@ -32,6 +33,14 @@ class SubjectsController extends Controller
 
             $book = $request->file('book_path')->store('images','public');
             $bookUrl = asset('storage/'.$book);
+
+            $photoUrl = null;
+
+          
+            if ($request->hasFile('photo_path')){
+                $photo_subject_path = $request->photo_path->store('images', 'public');
+                $photoUrl = asset('storage/' . $photo_subject_path);
+            }
 
 
         $request->validate([
@@ -54,38 +63,13 @@ class SubjectsController extends Controller
             'about_subject' => $request->about_subject,
             'total_grade'=>$request->total_grade,
             'book_path' => $bookUrl,
+            'photo_path'=>$photoUrl
         ]);
 
         
         return response()->json(['the subject added',$subject], 200);
     }
 
-    public function store_photo_about_subject(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'subject_id'=>'required|integer',
-            'photo_for_subject'=>'nullable|image',
-
-        ]);
-        if ($validator->fails()) {
-            return response()->json($validator->errors());
-        }
-        $photo_path = $request->photo_for_subject->store('images','public');
-        $photoUrl = asset('storage/'.$photo_path);
-
-
-        $subject=subject::find($request->subject_id);
-        if(!$subject){
-            return response('this sunject does not exist');
-        }
-
-            $photo_about_subject = photos_about_subject::create([
-                'subject_id'=>$request->subject_id,
-                'photo_path'=>$photoUrl,
-            ]);
-        
-        return response()->json(['the photo added',$photo_about_subject], 200);
-    }
 
     public function store_subject_units(Request $request)
     {
@@ -109,7 +93,7 @@ class SubjectsController extends Controller
 
             $photoSubjectUrl = null;
 
-            if (isset($unit_data['photo_path'])) {
+            if ($request->hasFile('photo_path')){
                 $photo_subject_path = $request->photo_path->store('images', 'public');
                 $photoSubjectUrl = asset('storage/' . $photo_subject_path);
             }
@@ -222,72 +206,13 @@ class SubjectsController extends Controller
 
     }
   
-    public function show_the_schedule_for_teacher(){
-        $user_id = Auth::id();
-
-        $teacher_id=DB::table('teachers')
-        ->where('teachers.user_id',$user_id)
-        ->value('teachers.id');
-
-        $teacher = teacher::find($teacher_id);
-
-        if (!$teacher) {
-
-            return response()->json('you are not auth as a teacher', 403);
-        }
-
-        $schedule=DB::table('class_subjects')
-        ->where('class_subjects.teacher_id',$teacher->id)
-        ->join('subjects','subjects.id','class_subjects.subject_id')
-        ->select('subjects.name','class_subjects.*')
-        ->get();
-
-        if(count($schedule)==0){
-            return response('there is no schedule');
-        }
-        return response($schedule);
-
-    }
-    public function show_all_the_schedules(){
-
-    }
-
     public function show_subjects_of_the_class(Request $request)
     {
         $the_class=$request->input('class_level');
         $subjects = DB::table('subjects')
             ->where('the_class', $the_class)
             ->get();
-
-        $subject_units=[];  
-        $subject_photos=[]; 
-        $subjects1=[]; 
-        foreach($subjects as $subject){
-            $id=$subject->id;
-
-            $subject_units[$id] = DB::table('subjects')
-            ->where('subjects.id', $id)
-            ->join('subject_units', 'subject_units.subject_id', '=', 'subjects.id')
-            ->select('subject_units.*')
-            ->get();
-
-            
-            $subject_photos[$id] = DB::table('subjects')
-            ->where('subjects.id', $id)
-            ->join('photos_about_subjects','photos_about_subjects.subject_id','subjects.id')
-            ->select('photos_about_subjects.*')
-            ->get();
-
-
-            $subjects1[$id]=[
-                'subject'=>$subject,
-                'subject units'=>$subject_units[$id],
-                'subject_photos'=>$subject_photos[$id]
-            ];
-    
-        }
-
-        return response()->json($subjects1, 200);
+        return response()->json($subjects, 200);
     }
     public function show_subject(Request $request)
     {
@@ -304,16 +229,11 @@ class SubjectsController extends Controller
         ->select('subject_units.*')
         ->get();
 
-        $subject_photos = DB::table('subjects')
-            ->where('subjects.id', $id)
-            ->join('photos_about_subjects','photos_about_subjects.subject_id','subjects.id')
-            ->select('photos_about_subjects.*')
-            ->get();
+      
 
         return response()->json([
             'the subject'=>$subject,
             'units'=>$subject_units,
-            'photos'=>$subject_photos
         ], 200);
     }
 }
