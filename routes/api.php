@@ -61,8 +61,12 @@ Route::group(["middleware" => "translate"], function () {
 Route::group(["middleware" => ["auth:api", "translate"]], function () {
 
     Route::get('logout', [AuthController::class, 'logout']);
-    Route::post('EditProfile', [AuthController::class, 'EditProfilestudent']);
-    Route::post('EditProfileteacher', [AuthController::class, 'EditProfileteacher']);
+    Route::post('edit_email', [AuthController::class, 'edit_email']);
+    Route::post('edit_phone', [AuthController::class, 'edit_phone']);
+    Route::post('edit_address', [AuthController::class, 'edit_address']);
+    Route::post('edit_profile_picture', [AuthController::class, 'edit_profile_picture']);
+    Route::post('edit_password', [AuthController::class, 'edit_password']);
+
     Route::post('EditprofileAdmin', [AuthController::class, 'EditprofileAdmin'])->middleware('admin');
     Route::get('profileAdmin', [AuthController::class, 'profileAdmin'])->Middleware('admin');
 });
@@ -80,6 +84,8 @@ Route::group(["middleware" => "translate"], function () {
 });
 
 Route::group(["middleware" => ["auth:api", "translate"]], function () {
+   
+    Route::post('show_all_by_class_by_type', [AdvertisementController::class, 'show_all_by_class_by_type']);
     Route::get('show_all_by_class', [AdvertisementController::class, 'show_all_by_class']);
 });
 

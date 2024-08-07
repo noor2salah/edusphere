@@ -215,6 +215,34 @@ class SubjectsController extends Controller
 
     }
   
+    public function show_the_schedule_for_teacher(){
+
+        $user_id = Auth::id();
+
+        $teacher_id=DB::table('teachers')
+        ->where('teachers.user_id',$user_id)
+        ->value('teachers.id');
+
+        $teacher = teacher::find($teacher_id);
+
+        if (!$teacher) {
+
+            return response()->json('you are not auth as a teacher', 403);
+        }
+
+        $schedule=DB::table('class_subjects')
+        ->where('class_subjects.teacher_id',$teacher_id)
+        ->join('subjects','subjects.id','class_subjects.subject_id')
+        ->join('classses','classses.id','class_subjects.class_id')
+        ->select('classses.class_level','classses.class_number','subjects.name','class_subjects.*')
+        ->get();
+
+        if(count($schedule)==0){
+            return response('there is no schedule');
+        }
+        return response($schedule);
+
+    }
     public function show_subjects_of_the_class(Request $request)
     {
         $the_class=$request->input('class_level');

@@ -113,6 +113,57 @@ class AdvertisementController extends Controller
             'data' => $advertisements,
         ], 200);
     }
+
+    public function show_all_by_class_by_type(Request $request)
+    {
+
+        $validator = Validator::make($request->all(), [
+        
+            'type'=>'required|string',
+        ]);
+
+        $request->validate([
+
+            'type' => 'required|in:bus,trips,wallet,exam,results,instuctions,other',
+        ]);
+        
+        if ($validator->fails()) {
+            return response()->json($validator->errors());
+        }
+
+        $user_id = Auth::id();
+        $class_id = DB::table('students')
+        ->where('students.user_id',$user_id)
+        ->value('students.class_id');
+
+
+        if (!$class_id) {
+            return response()->json([
+                'message' => 'this class does not exist',
+
+            ], 200);
+        }
+
+        
+
+        $advertisements=DB::table('advertisements')
+        ->where('advertisements.class_id',$class_id)
+        ->where('advertisements.type',$request->type)
+        ->select('advertisements.*')
+        ->get();
+
+        if (count($advertisements)==0) {
+            return response()->json([
+                'message' => 'not found any Advertisements',
+
+            ], 200);
+        }
+
+        return response()->json([
+            'message' => 'retruved successfully',
+            'data' => $advertisements,
+        ], 200);
+    }
     public function destroy($id)
     {
         $advertisements = advertisement::find($id);

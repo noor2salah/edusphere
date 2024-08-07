@@ -311,7 +311,6 @@ public function login(Request $request)
                 'message' => 'Invalid password'
             ]);
 
-
         }
         Auth::login($user);
 
@@ -463,144 +462,226 @@ public function login(Request $request)
             'data' => $teacher,
         ]);
     }
-    public function EditProfilestudent( Request $request)
-    { $e = $request->all();
-        $validator = Validator::make($e, [
-            'email' => 'string|email|unique:users',
-            'password' => 'string',
-            'phone' => 'string|unique:users',
-            'address' => 'string',
-            'profile_picture_path' => 'image|mimes:jpg,png,jpeg,gif,svg|max:2048',
-            'parent_phone' => 'string|unique:students',
-            'parent_email' => 'email|unique:students',
-         
+
+    public function edit_email( Request $request){
+
+        $validator = Validator::make($request->all(), [
+
+            'email' => 'required|string|email|unique:users',
     
         ]);
-    
+
+        if($validator->fails())
+        {
+            return response()->json($validator->errors());
+        }
+
         $user_id = Auth::id();
 
-        $student = Student::where('user_id', $user_id)->first();
-
-
-        if (!$student) {
-            return response()->json([
-                'message' => 'student not found',
+        if(!$user_id){
+             return response()->json([
+            'message' => 'user not found',
             ], 404);
         }
 
-        $user = User::find($user_id);
-
-        if (!$user) {
-            return response()->json([
-                'message' => 'user not found',
-            ], 404);
-        }
-
-        if($request->email){
-            $user->email = $request->email;
-
-        }
-        if($request->password){
-            $user->password = Hash::make($request->password);
-
-        }
-        if($request->phone){
-            $user->phone = $request->phone;
-
-        }
-        if ($request->hasFile('profile_picture_path')){
-
-            $profile_picture_path = $request->file('profile_picture_path')->store('images','public');
+        $user=user::find($user_id);
     
-            $imageUrl = asset('storage/'.$profile_picture_path);
-
-            $user->profile_picture_path = $imageUrl;
-
+        if(!$user){
+            return response()->json([
+           'message' => 'user not found',
+           ], 404);
         }
-
-        if($request->parent_phone){
-            $student->parent_phone = $request->parent_phone;
-
-        }
-        if($request->parent_email){
-            $student->parent_email = $request->parent_email;
-
-        }
+        $user->email = $request->email;
         $user->save();
-        $student->save();
 
         return response()->json([
-            'message' => 'updated successfully',
-            'user' => $user,
-            'student' => $student,
-        ]);
+            'message' => 'edited successfully ',
+            $user->email
+            ], 200);
+
     }
-    public function EditProfileteacher( Request $request)
-    {
 
-        $e = $request->all();
-        $validator = Validator::make($e, [
-            'email' => 'string|email|unique:users',
-            'password' => 'string',
-            'phone' => 'string|unique:users',
-            'address' => 'string',
-            'profile_picture_path' => 'image|mimes:jpg,png,jpeg,gif,svg|max:2048',
-            'cv'=> 'mimes:pdf',
+    
+    public function edit_phone( Request $request){
+
+        $validator = Validator::make($request->all(), [
+
+            'phone' => 'required|string|unique:users',
     
         ]);
-    
+
+        if($validator->fails())
+        {
+            return response()->json($validator->errors());
+        }
+
         $user_id = Auth::id();
 
-        $teacher=teacher::where('user_id', $user_id)->first();
-        if (!$teacher) {
-            return response()->json([
-                'message' => 'teacher not found',
+        if(!$user_id){
+             return response()->json([
+            'message' => 'user not found',
             ], 404);
         }
 
-        $user = User::where('id', $teacher->user_id)->first();
-
-        if (!$user) {
-            return response()->json([
-                'message' => 'user not found',
-            ], 404);
-        }
-        if($request->email){
-            $user->email = $request->email;
-
-        }
-        if($request->password){
-            $user->password = Hash::make($request->password);
-
-        }
-        if($request->phone){
-            $user->phone = $request->phone;
-
-        }
-        if($request->hasFile('cv')){
-            $cv = $request->file('cv')->store('images','public');
-            $cvurl = asset('storage/'.$cv);
-            $teacher->cv=$cvurl;
-        
-        }
-        if ($request->hasFile('profile_picture_path')){
-
-            $profile_picture_path = $request->file('profile_picture_path')->store('images','public');
+        $user=user::find($user_id);
     
-            $imageUrl = asset('storage/'.$profile_picture_path);
-
-            $user->profile_picture_path = $imageUrl;
-
+        if(!$user){
+            return response()->json([
+           'message' => 'user not found',
+           ], 404);
         }
 
+
+        $user->phone = $request->phone;
         $user->save();
-        $teacher->save();
 
         return response()->json([
-            'message' => 'updated successfully',
-            'user' => $user,
-            'teacher' => $teacher,
+            'message' => 'edited successfully ',
+            $user->phone
+            ], 200);
+
+
+    }
+
+    public function edit_address( Request $request){
+
+        $validator = Validator::make($request->all(), [
+
+            'address' => 'required|string',
+    
         ]);
+
+        if($validator->fails())
+        {
+            return response()->json($validator->errors());
+        }
+
+        $user_id = Auth::id();
+
+        if(!$user_id){
+             return response()->json([
+            'message' => 'user not found',
+            ], 404);
+        }
+
+        $user=user::find($user_id);
+    
+        if(!$user){
+            return response()->json([
+           'message' => 'user not found',
+           ], 404);
+        }
+
+        
+        $user->address = $request->address;
+        $user->save();
+
+        return response()->json([
+            'message' => 'edited successfully ',
+            $user->address
+            ], 200);
+
+    }
+
+    public function edit_profile_picture( Request $request){
+
+        $validator = Validator::make($request->all(), [
+
+            'profile_picture_path' => 'required|image|mimes:jpg,png,jpeg,gif,svg|max:2048',
+    
+        ]);
+
+        if($validator->fails())
+        {
+            return response()->json($validator->errors());
+        }
+
+        $user_id = Auth::id();
+
+        if(!$user_id){
+             return response()->json([
+            'message' => 'user not found',
+            ], 404);
+        }
+
+        $user=user::find($user_id);
+    
+        if(!$user){
+            return response()->json([
+           'message' => 'user not found',
+           ], 404);
+        }
+
+        
+        $profile_picture_path = $request->file('profile_picture_path')->store('images','public');
+    
+        $imageUrl = asset('storage/'.$profile_picture_path);
+
+        $user->profile_picture_path = $imageUrl;
+        
+        $user->save();
+
+        return response()->json([
+            'message' => 'edited successfully ',
+            $user->profile_picture_path
+            ], 200);
+
+    }
+
+
+    public function edit_password( Request $request){
+
+        $validator = Validator::make($request->all(), [
+            
+            'old_password' => 'required|string',
+            'confirm_old_password' => 'required|string',
+            'new_password' => 'required|string',
+            'confirm_new_password' => 'required|string',
+        ]);
+
+        if($validator->fails())
+        {
+            return response()->json($validator->errors());
+        }
+
+        $user_id = Auth::id();
+
+        if(!$user_id){
+             return response()->json([
+            'message' => 'user not found',
+            ], 404);
+        }
+
+        $user=user::find($user_id);
+    
+        if(!$user){
+            return response()->json([
+           'message' => 'user not found',
+           ], 404);
+        }
+
+        if (!Hash::check($request->old_password, $user->password) || !Hash::check($request->confirm_old_password, $user->password)) {
+            
+            return response()->json([
+                'message' => 'Invalid password'
+            ]);
+        }
+
+        if($request->new_password !== $request->confirm_new_password){
+            return response()->json([
+                'message' => 'try again ,new password is not correct'
+            ]);
+        }
+
+        $user->password=Hash::make($request->new_password);
+
+        $user->save();
+
+        return response()->json([
+            'message' => 'edited successfully ',
+            $user->password
+            ], 200);
+
     }
     public function profileAdmin()
     {

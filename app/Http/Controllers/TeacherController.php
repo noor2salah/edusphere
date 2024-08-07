@@ -18,7 +18,9 @@ class TeacherController extends Controller
 
         $class_level = $request->input('class_level');
 
-        $teachers = DB::table('teachers')
+        $teachers = DB::table('users')
+        ->join('teachers','teachers.user_id','users.id')
+        ->select('teachers.id','users.first_name','users.last_name','teachers.specialization')
         ->get();
 
         if(count($teachers)==0){
