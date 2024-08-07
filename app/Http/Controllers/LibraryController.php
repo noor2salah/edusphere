@@ -29,9 +29,12 @@ class LibraryController extends Controller
             return response()->json($validator->errors());
         }
 
-    $book_path = $request->file('book_path')->store('images','public');
-    $bookUrl = asset('storage/'.$book_path);
+        if($request->hasFile('book_path')){
+                    
+            $book_path = $request->file('book_path')->store('images','public');
+            $bookUrl = asset('storage/'.$book_path);
 
+        }
 
 
         $book_name=DB::table('libraries')
@@ -41,9 +44,14 @@ class LibraryController extends Controller
         if($book_name){
             return response('this book is already in the library');
         }
-        $photo_path = $request->file('photo_path')->store('images','public');
-        $imageUrl = asset('storage/'.$photo_path);
 
+        $imageUrl=null;
+        if($request->hasFile('photo_path')){
+            $photo_path = $request->file('photo_path')->store('images','public');
+            $imageUrl = asset('storage/'.$photo_path);
+    
+        }
+      
         $library=library::create([
             'book_name' => $request->book_name,
             'book_path' => $bookUrl,
@@ -93,7 +101,7 @@ class LibraryController extends Controller
         return response($fav_book,200);
     }
     public function remove_from_favorite($id){
-        $book=favorite_book::find($id);
+        $book=library::find($id);
         if(!$book){
             return response('this book does not exist ,please try again',404);
         }
@@ -101,12 +109,19 @@ class LibraryController extends Controller
         $student_id = DB::table('students')
         ->where('students.user_id',$user_id)
         ->value('students.id');
-        if($book->student_id==$student_id){
-            $book->delete();
-            return response('the book deleted from favorite');
 
+        $fav_book=favorite_book::
+        where('favorite_books.student_id',$student_id)
+        ->where('favorite_books.library_id',$id)
+        ->select('favorite_books.*')
+        ->first();
+
+        if(!$fav_book){
+            return response('you can not delete this book');
         }
-        return response('you can not delete this book');
+
+        $fav_book->delete();
+        return response('the book deleted from favorite');
 
     }
     public function show_favorite_books(){
