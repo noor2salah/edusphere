@@ -7,6 +7,7 @@ use App\Http\Controllers\LibraryController;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\SubjectsController;
 use App\Http\Controllers\TeachersListController;
+use App\Http\Controllers\TeacherController;
 use App\Http\Controllers\TestController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\WalletController;
@@ -51,6 +52,8 @@ Route::group(["middleware" => "translate"], function () {
     Route::post('resetpassword', [AuthController::class, 'userresetpassword']);
     Route::get('profileteacher/{id}', [AuthController::class, 'profileteacher']);
     Route::get('profilestudent/{id}', [AuthController::class, 'profileStudent']);
+    Route::post('add_uid_to_user', [AuthController::class, 'add_uid_to_user']);
+    Route::post('get_data_from_uid', [AuthController::class, 'get_data_from_uid']);
 
 });
 //----------
@@ -58,8 +61,12 @@ Route::group(["middleware" => "translate"], function () {
 Route::group(["middleware" => ["auth:api", "translate"]], function () {
 
     Route::get('logout', [AuthController::class, 'logout']);
-    Route::post('EditProfile', [AuthController::class, 'EditProfilestudent']);
-    Route::post('EditProfileteacher', [AuthController::class, 'EditProfileteacher']);
+    Route::post('edit_email', [AuthController::class, 'edit_email']);
+    Route::post('edit_phone', [AuthController::class, 'edit_phone']);
+    Route::post('edit_address', [AuthController::class, 'edit_address']);
+    Route::post('edit_profile_picture', [AuthController::class, 'edit_profile_picture']);
+    Route::post('edit_password', [AuthController::class, 'edit_password']);
+
     Route::post('EditprofileAdmin', [AuthController::class, 'EditprofileAdmin'])->middleware('admin');
     Route::get('profileAdmin', [AuthController::class, 'profileAdmin'])->Middleware('admin');
 });
@@ -77,6 +84,8 @@ Route::group(["middleware" => "translate"], function () {
 });
 
 Route::group(["middleware" => ["auth:api", "translate"]], function () {
+   
+    Route::post('show_all_by_class_by_type', [AdvertisementController::class, 'show_all_by_class_by_type']);
     Route::get('show_all_by_class', [AdvertisementController::class, 'show_all_by_class']);
 });
 
@@ -115,11 +124,13 @@ Route::group(["middleware" => ["auth:api", "translate"]], function () {
 Route::group(["middleware" => "translate"], function () {
 
     Route::get('show_all_class_levels', [ClassController::class, 'show_all_class_levels']);
+    Route::get('show_all_classes', [ClassController::class, 'show_all_classes']);
     Route::post('show_all_class_numbers', [ClassController::class, 'show_all_class_numbers']);
     
     Route::post('store_class_subject', [SubjectsController::class, 'store_class_subject']);
     Route::delete('class/{id}', [ClassController::class, 'detete_class']);
     Route::post('show_subjects_of_the_class', [SubjectsController::class, 'show_subjects_of_the_class']);  
+    Route::get('show_all_subjects', [SubjectsController::class, 'show_all_subjects']);  
     Route::post('show_subject', [SubjectsController::class, 'show_subject']);
     Route::post('store', [ClassController::class, 'store']);
     Route::post('store_subject', [SubjectsController::class, 'store_subject']);
@@ -217,5 +228,12 @@ Route::group(["middleware"=>"translate"],function() {
     Route::post('number_of_total_class_students', [StudentController::class, 'number_of_total_class_students']);
     Route::post('show_students_in_class', [StudentController::class, 'show_students_in_class']);
     Route::post('show_student_profile', [StudentController::class, 'show_student_profile']);
+    
+});
+
+//show teachers for admin
+Route::group(["middleware"=>"translate"],function() {
+
+    Route::get('show_all_teachers', [TeacherController::class, 'show_all_teachers']);
     
 });

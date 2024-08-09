@@ -125,14 +125,21 @@ class TaskController extends Controller
         foreach ($tasks as $task) {
 
             $task_id = $task->id;
-
+            
             $check = DB::table('task_grades')
+            ->where('task_grades.task_id', $task_id)
+            ->join('students', 'students.id', 'task_grades.student_id')
+            ->where('students.id', $student_id)
+            ->select('task_grades.grade','task_grades.task_id')
+            ->get();
+
+            $check1 = DB::table('task_grades')
                 ->where('task_grades.task_id', $task_id)
                 ->join('students', 'students.id', 'task_grades.student_id')
                 ->where('students.id', $student_id)
-                ->value('task_grades.grade');
+                ->first('task_grades.grade');
 
-            if ($check) {
+            if ($check1) {
                 $solved_tasks[$task_id] = $task;
                 $grades[$task_id] = $check;
             } else {
@@ -140,10 +147,11 @@ class TaskController extends Controller
             }
         }
 
+
         return response([
-            'solved' => $solved_tasks,
-            'grades' => $grades,
-            'unsolved' => $unsolved_tasks
+            'solved' => array_values($solved_tasks),
+            'grades'=>collect($grades)->flatten(1)->all(),  
+            'unsolved' => array_values($unsolved_tasks)
         ]);
     }
     public function show_all_tasks_for_teacher()
@@ -179,11 +187,47 @@ class TaskController extends Controller
     public function show_task($id)
     {
 
+        $user_id = Auth::id();
+
+        $student_id = DB::table('students')
+            ->where('students.user_id', $user_id)
+            ->value('students.id');
+
+        $student = Student::find($student_id);
+
+        if (!$student) {
+
+            return response()->json('You are not student', 403);
+        }
+
 
         $task = task::find($id);
 
         if (!$task) {
             return response('there is no task');
+        }
+
+        $check1 = DB::table('tasks')
+            ->where('tasks.id', $id)
+            ->join('class_subjects', 'class_subjects.id', 'tasks.class_subject_id')
+            ->join('classses', 'classses.id', 'class_subjects.class_id')
+            ->where('classses.id', $student->class_id)
+            ->select('tasks.*')
+            ->first();
+
+        if (!$check1) {
+            return response()->json(['error' => 'this task is not available to you'], 404);
+        }
+
+        $check2 = DB::table('task_grades')
+            ->where('task_grades.task_id', $id)
+            ->join('students', 'students.id', 'task_grades.student_id')
+            ->where('students.id', $student_id)
+            ->select('task_grades.*')
+            ->get();
+
+        if (count($check2) !== 0) {
+            return response()->json(['error' => 'you have already solved this task'], 404);
         }
 
 
@@ -248,6 +292,7 @@ class TaskController extends Controller
             return response()->json(['error' => 'Task not found'], 404);
         }
 
+        
         $check1 = DB::table('tasks')
             ->where('tasks.id', $request->task_id)
             ->join('class_subjects', 'class_subjects.id', 'tasks.class_subject_id')
@@ -271,13 +316,15 @@ class TaskController extends Controller
             return response()->json(['error' => 'you have already solved this task'], 404);
         }
 
+
+        
         $task_questions = DB::table('task_questions')
             ->where('task_questions.task_id', $request->task_id)
             ->select('task_questions.*')
             ->get();
 
         $the_grade = 0;
-        $correct_answer = [];
+        $correct_answers = [];
 
         foreach ($task_questions as $i => $task_question) {
             $answer_id = $request->answers[$i]['answer_id'];
@@ -290,8 +337,14 @@ class TaskController extends Controller
 
             if ($the_answer && $the_answer->correct_answer == 1) {
                 $the_grade += $task_question->question_grade;
-                $correct_answer[$i] = $the_answer;
             }
+
+            $correct_answers[$i]=DB::table('question_answers')
+            ->where('question_answers.task_question_id', $task_question->id)
+            ->where('question_answers.correct_answer', '1')
+            ->select('question_answers.*')
+            ->first();
+
         }
 
         task_grade::create([
@@ -300,7 +353,7 @@ class TaskController extends Controller
             'grade' => $the_grade
         ]);
 
-        return response([$the_grade, $correct_answer]);
+        return response([$the_grade, $correct_answers]);
     }
 
     public function show_question(Request $request)

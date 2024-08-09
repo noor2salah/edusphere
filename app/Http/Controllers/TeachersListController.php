@@ -70,7 +70,7 @@ class TeachersListController extends Controller
 
     public function remove_from_favorite($id){
 
-        $teacher=favorite_teacher::find($id);
+        $teacher=teacher::find($id);
 
         if(!$teacher){
             return response('this teacher does not exist ,please try again',403);
@@ -81,13 +81,19 @@ class TeachersListController extends Controller
         ->where('students.user_id',$user_id)
         ->value('students.id');
 
-        if($student_id!=$teacher->student_id){
+        $fav_teacher=favorite_teacher::
+        where('favorite_teachers.teacher_id',$id)
+        ->where('favorite_teachers.student_id',$student_id)
+        ->select('favorite_teachers.*')
+        ->first();
+
+        if(!$fav_teacher){
 
             return response('you can not delete this , you are not the owner');
 
         }
 
-        $teacher->delete();
+        $fav_teacher->delete();
         return response('the teacher deleted from favorite');
     }
 

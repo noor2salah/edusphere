@@ -126,12 +126,12 @@ class SubjectsController extends Controller
             'class_id' => 'required|integer',
             'teacher_id' => 'required|integer',
             'subject_id' => 'required|integer',
-            'time_on_sun' => 'nullable|date_format:H:i',
-            'time_on_mon' => 'nullable|date_format:H:i',
-            'time_on_tue' => 'nullable|date_format:H:i',
-            'time_on_wed' => 'nullable|date_format:H:i',
-            'time_on_thu' => 'nullable|date_format:H:i',
-            'exam_date_and_time' => 'nullable|date_format:Y-m-d H:i:s',
+            'time_on_sun' => 'nullable|integer',
+            'time_on_mon' => 'nullable|integer',
+            'time_on_tue' => 'nullable|integer',
+            'time_on_wed' => 'nullable|integer',
+            'time_on_thu' => 'nullable|integer',
+            'exam_date_and_time' => 'nullable|date_format:Y-m-d H:i',
 
         ]);
         if ($validator->fails()) {
@@ -161,6 +161,80 @@ class SubjectsController extends Controller
             return response('already exist');
         }
 
+        $teacher=DB::table('teachers')
+        ->where('teachers.id',$request->teacher_id)
+        ->select('teachers.*')
+        ->first();
+
+        if(!$teacher){
+            return response('there is no teacher');
+        }
+
+        $check1 = DB::table('class_subjects')
+        ->where('class_subjects.class_id', $request->class_id)
+        ->where(function ($query) use ($request) {
+            $query->where(function($subQuery) use ($request) {
+                $subQuery->where('class_subjects.time_on_sun', '=', $request->time_on_sun)
+                         ->whereNotNull('class_subjects.time_on_sun');
+            })
+            ->orWhere(function($subQuery) use ($request) {
+                $subQuery->where('class_subjects.time_on_mon', '=', $request->time_on_mon)
+                         ->whereNotNull('class_subjects.time_on_mon');
+            })
+            ->orWhere(function($subQuery) use ($request) {
+                $subQuery->where('class_subjects.time_on_tue', '=', $request->time_on_tue)
+                         ->whereNotNull('class_subjects.time_on_tue');
+            })
+            ->orWhere(function($subQuery) use ($request) {
+                $subQuery->where('class_subjects.time_on_wed', '=', $request->time_on_wed)
+                         ->whereNotNull('class_subjects.time_on_wed');
+            })
+            ->orWhere(function($subQuery) use ($request) {
+                $subQuery->where('class_subjects.time_on_thu', '=', $request->time_on_thu)
+                         ->whereNotNull('class_subjects.time_on_thu');
+            });
+        })
+        ->select('class_subjects.*')
+        ->first();
+
+        if($check1){
+            return response('you can not store tow subjects at the same time for the same class');
+
+        }
+
+        $check2=DB::table('class_subjects')
+        ->where('class_subjects.teacher_id', $request->teacher_id)
+        ->where(function ($query) use ($request) {
+            $query->where(function($subQuery) use ($request) {
+                $subQuery->where('class_subjects.time_on_sun', '=', $request->time_on_sun)
+                         ->whereNotNull('class_subjects.time_on_sun');
+            })
+            ->orWhere(function($subQuery) use ($request) {
+                $subQuery->where('class_subjects.time_on_mon', '=', $request->time_on_mon)
+                         ->whereNotNull('class_subjects.time_on_mon');
+            })
+            ->orWhere(function($subQuery) use ($request) {
+                $subQuery->where('class_subjects.time_on_tue', '=', $request->time_on_tue)
+                         ->whereNotNull('class_subjects.time_on_tue');
+            })
+            ->orWhere(function($subQuery) use ($request) {
+                $subQuery->where('class_subjects.time_on_wed', '=', $request->time_on_wed)
+                         ->whereNotNull('class_subjects.time_on_wed');
+            })
+            ->orWhere(function($subQuery) use ($request) {
+                $subQuery->where('class_subjects.time_on_thu', '=', $request->time_on_thu)
+                         ->whereNotNull('class_subjects.time_on_thu');
+            });
+        })
+        ->select('class_subjects.*')
+        ->first();
+
+        if($check2){
+            return response('same techer can not be at tow classes at the same time ');
+
+        }
+
+        
         $class_subject = class_subject::create([
             'class_id' => $request->class_id,
             'teacher_id' =>  $request->teacher_id,
@@ -206,12 +280,53 @@ class SubjectsController extends Controller
 
     }
   
+<<<<<<< HEAD
     public function show_the_schedule_for_teacher(Request $request)
+=======
+    public function show_the_schedule_for_teacher(){
+
+        $user_id = Auth::id();
+
+        $teacher_id=DB::table('teachers')
+        ->where('teachers.user_id',$user_id)
+        ->value('teachers.id');
+
+        $teacher = teacher::find($teacher_id);
+
+        if (!$teacher) {
+
+            return response()->json('you are not auth as a teacher', 403);
+        }
+
+        $schedule=DB::table('class_subjects')
+        ->where('class_subjects.teacher_id',$teacher_id)
+        ->join('subjects','subjects.id','class_subjects.subject_id')
+        ->join('classses','classses.id','class_subjects.class_id')
+        ->select('classses.class_level','classses.class_number','subjects.name','class_subjects.*')
+        ->get();
+
+        if(count($schedule)==0){
+            return response('there is no schedule');
+        }
+        return response($schedule);
+
+    }
+    public function show_subjects_of_the_class(Request $request)
+>>>>>>> dfc41436faa7adcd1b42b99adf78fe3c047273e9
     {
         $the_class=$request->input('class_level');
         $subjects = DB::table('subjects')
             ->where('the_class', $the_class)
             ->get();
+        return response()->json($subjects, 200);
+    }
+    public function show_all_subjects(Request $request)
+    {
+        $subjects = DB::table('subjects')
+        ->get();
+        if(count($subjects)==0){
+            return response('there is no teachers');
+        }
         return response()->json($subjects, 200);
     }
     public function show_subject(Request $request)

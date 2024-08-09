@@ -14,5 +14,19 @@ use Illuminate\Support\Facades\DB;
 
 class TeacherController extends Controller
 {
-   
+    public function show_all_teachers(Request $request){
+
+        $class_level = $request->input('class_level');
+
+        $teachers = DB::table('users')
+        ->join('teachers','teachers.user_id','users.id')
+        ->select('teachers.id','users.first_name','users.last_name','teachers.specialization')
+        ->get();
+
+        if(count($teachers)==0){
+            return response('there is no teachers');
+        }
+
+        return response($teachers,200);
+    }
 }
