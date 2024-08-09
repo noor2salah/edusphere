@@ -26,6 +26,14 @@ class class_subject extends Model
         'time_on_thu',
         'exam_date_and_time'
     ];
+    public static $rules = [
+        'time_on_sun'=>'required|in:1,2,3,4,5,6,7',
+        'time_on_mon'=>'required|in:1,2,3,4,5,6,7',
+        'time_on_tue'=>'required|in:1,2,3,4,5,6,7',
+        'time_on_wed'=>'required|in:1,2,3,4,5,6,7',
+        'time_on_thu'=>'required|in:1,2,3,4,5,6,7',
+    ];
+
     public function task(){
         return $this->hasMany(task::class);
     }

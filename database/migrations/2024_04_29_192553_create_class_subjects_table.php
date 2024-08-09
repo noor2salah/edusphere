@@ -24,11 +24,11 @@ return new class extends Migration
             $table->unsignedBigInteger('subject_id')->nullable();
             $table->foreign('subject_id')->references('id')->on('subjects')->onDelete('cascade');
 
-            $table->time('time_on_sun')->nullable();
-            $table->time('time_on_mon')->nullable();
-            $table->time('time_on_tue')->nullable();
-            $table->time('time_on_wed')->nullable();
-            $table->time('time_on_thu')->nullable();
+            $table->integer('time_on_sun')->nullable()->default(null);
+            $table->integer('time_on_mon')->nullable()->default(null);
+            $table->integer('time_on_tue')->nullable()->default(null);
+            $table->integer('time_on_wed')->nullable()->default(null);
+            $table->integer('time_on_thu')->nullable()->default(null);
 
             $table->dateTime('exam_date_and_time')->nullable();
 

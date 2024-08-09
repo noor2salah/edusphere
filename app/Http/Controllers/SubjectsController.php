@@ -126,12 +126,12 @@ class SubjectsController extends Controller
             'class_id' => 'required|integer',
             'teacher_id' => 'required|integer',
             'subject_id' => 'required|integer',
-            'time_on_sun' => 'nullable|date_format:H:i',
-            'time_on_mon' => 'nullable|date_format:H:i',
-            'time_on_tue' => 'nullable|date_format:H:i',
-            'time_on_wed' => 'nullable|date_format:H:i',
-            'time_on_thu' => 'nullable|date_format:H:i',
-            'exam_date_and_time' => 'nullable|date_format:Y-m-d H:i:s',
+            'time_on_sun' => 'nullable|integer',
+            'time_on_mon' => 'nullable|integer',
+            'time_on_tue' => 'nullable|integer',
+            'time_on_wed' => 'nullable|integer',
+            'time_on_thu' => 'nullable|integer',
+            'exam_date_and_time' => 'nullable|date_format:Y-m-d H:i',
 
         ]);
         if ($validator->fails()) {
@@ -170,6 +170,71 @@ class SubjectsController extends Controller
             return response('there is no teacher');
         }
 
+        $check1 = DB::table('class_subjects')
+        ->where('class_subjects.class_id', $request->class_id)
+        ->where(function ($query) use ($request) {
+            $query->where(function($subQuery) use ($request) {
+                $subQuery->where('class_subjects.time_on_sun', '=', $request->time_on_sun)
+                         ->whereNotNull('class_subjects.time_on_sun');
+            })
+            ->orWhere(function($subQuery) use ($request) {
+                $subQuery->where('class_subjects.time_on_mon', '=', $request->time_on_mon)
+                         ->whereNotNull('class_subjects.time_on_mon');
+            })
+            ->orWhere(function($subQuery) use ($request) {
+                $subQuery->where('class_subjects.time_on_tue', '=', $request->time_on_tue)
+                         ->whereNotNull('class_subjects.time_on_tue');
+            })
+            ->orWhere(function($subQuery) use ($request) {
+                $subQuery->where('class_subjects.time_on_wed', '=', $request->time_on_wed)
+                         ->whereNotNull('class_subjects.time_on_wed');
+            })
+            ->orWhere(function($subQuery) use ($request) {
+                $subQuery->where('class_subjects.time_on_thu', '=', $request->time_on_thu)
+                         ->whereNotNull('class_subjects.time_on_thu');
+            });
+        })
+        ->select('class_subjects.*')
+        ->first();
+
+        if($check1){
+            return response('you can not store tow subjects at the same time for the same class');
+
+        }
+
+        $check2=DB::table('class_subjects')
+        ->where('class_subjects.teacher_id', $request->teacher_id)
+        ->where(function ($query) use ($request) {
+            $query->where(function($subQuery) use ($request) {
+                $subQuery->where('class_subjects.time_on_sun', '=', $request->time_on_sun)
+                         ->whereNotNull('class_subjects.time_on_sun');
+            })
+            ->orWhere(function($subQuery) use ($request) {
+                $subQuery->where('class_subjects.time_on_mon', '=', $request->time_on_mon)
+                         ->whereNotNull('class_subjects.time_on_mon');
+            })
+            ->orWhere(function($subQuery) use ($request) {
+                $subQuery->where('class_subjects.time_on_tue', '=', $request->time_on_tue)
+                         ->whereNotNull('class_subjects.time_on_tue');
+            })
+            ->orWhere(function($subQuery) use ($request) {
+                $subQuery->where('class_subjects.time_on_wed', '=', $request->time_on_wed)
+                         ->whereNotNull('class_subjects.time_on_wed');
+            })
+            ->orWhere(function($subQuery) use ($request) {
+                $subQuery->where('class_subjects.time_on_thu', '=', $request->time_on_thu)
+                         ->whereNotNull('class_subjects.time_on_thu');
+            });
+        })
+        ->select('class_subjects.*')
+        ->first();
+
+        if($check2){
+            return response('same techer can not be at tow classes at the same time ');
+
+        }
+
+        
         $class_subject = class_subject::create([
             'class_id' => $request->class_id,
             'teacher_id' =>  $request->teacher_id,
