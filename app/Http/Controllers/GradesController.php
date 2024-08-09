@@ -13,6 +13,7 @@ use App\Models\class_subject;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use PHPUnit\Util\ExcludeList;
+
 class GradesController extends Controller
 {
     public function store_grade_test(Request $request)
@@ -192,12 +193,13 @@ class GradesController extends Controller
         ]);
     }
 
-    public function rank (){
+    public function rank()
+    {
         $user_id = Auth::id();
 
-        $student_id=DB::table('students')
-        ->where('students.user_id',$user_id)
-        ->value('students.id');
+        $student_id = DB::table('students')
+            ->where('students.user_id', $user_id)
+            ->value('students.id');
 
         $student = Student::find($student_id);
 
@@ -206,97 +208,94 @@ class GradesController extends Controller
             return response()->json('You are not student', 403);
         }
 
-        $students_at_the_same_class=DB::table('students')
-        ->where('students.class_id',$student->class_id)
-        ->select('students.*')
-        ->get();
+        $students_at_the_same_class = DB::table('students')
+            ->where('students.class_id', $student->class_id)
+            ->select('students.*')
+            ->get();
 
-        $class_level=DB::table('classses')
-        ->where('classses.id',$student->class_id)
-        ->value('classses.class_level');
+        $class_level = DB::table('classses')
+            ->where('classses.id', $student->class_id)
+            ->value('classses.class_level');
 
         $class_level = (string) $class_level;
 
 
         $subjects = DB::table('subjects')
-        ->where('subjects.the_class',$class_level)
-        ->select('subjects.*')
-        ->get();
-
-
-        $students=DB::table('students')
-        ->where('students.class_id',$student->class_id)
-        ->join('users','users.id', 'students.user_id')
-        ->select('students.id','users.first_name','users.last_name','users.profile_picture_path')
-        ->get();
-        
-        $students = $students->keyBy('id')->toArray();
-
-        $grades1=[];
-        $mine=[];
-        foreach($students_at_the_same_class as $student1){
-       
-
-        $student1_id=$student1->id;    
-        $types = ['exam', 'quiz', 'homework', 'oral_exam'];
-
-        if($student1_id==$student_id){
-            $mine[$student1_id]=true;
-
-        }
-        else{      
-            $mine[$student1_id]=false;
-        }
-        $avg_by_type = [];
-        
-
-        // Get all grades with related tables in a single query
-        $grades = DB::table('grades')
-            ->where('grades.student_id', $student1->id)
-            ->join('tests', 'tests.id', '=', 'grades.test_id')
-            ->join('class_subjects', 'class_subjects.id', '=', 'tests.class_subject_id')
-            ->join('subjects', 'subjects.id', '=', 'class_subjects.subject_id')
-            ->select('subjects.name as subject_name', 'tests.type as test_type', 'grades.grade')
+            ->where('subjects.the_class', $class_level)
+            ->select('subjects.*')
             ->get();
 
-        // Group grades by subject and type
-        $groupedGrades = [];
-        foreach ($grades as $grade) {
-            $groupedGrades[$student1_id][$grade->subject_name][$grade->test_type][] = $grade->grade;
-        }
-        
-        // Calculate the averages
-        $student_grade_in_subject=[];
-        foreach ($subjects as $subject) {
-            $subjectName = $subject->name;
-            $total_garde[$subjectName] = $subject->total_grade;
-            foreach ($types as $type) {
 
-                $avg_by_type[$student1_id][$subjectName][$type] = isset($groupedGrades[$student1_id][$subjectName][$type])
-                    ? array_sum($groupedGrades[$student1_id][$subjectName][$type]) / count($groupedGrades[$student1_id][$subjectName][$type])
-                    : null; // or 0 or another default value
+        $students = DB::table('students')
+            ->where('students.class_id', $student->class_id)
+            ->join('users', 'users.id', 'students.user_id')
+            ->select('students.id', 'users.first_name', 'users.last_name', 'users.profile_picture_path')
+            ->get();
 
+        $students = $students->keyBy('id')->toArray();
+
+        $grades1 = [];
+        $mine = [];
+        foreach ($students_at_the_same_class as $student1) {
+
+
+            $student1_id = $student1->id;
+            $types = ['exam', 'quiz', 'homework', 'oral_exam'];
+
+            if ($student1_id == $student_id) {
+                $mine[$student1_id] = true;
+            } else {
+                $mine[$student1_id] = false;
             }
-            $student_grade_in_subject[$student1_id][$subjectName]=array_sum($avg_by_type[$student1_id][$subjectName]);
-        }
-       
-        $grades1[$student1_id]=array_sum($student_grade_in_subject[$student1_id]);
-        arsort($grades1);
+            $avg_by_type = [];
 
+
+            // Get all grades with related tables in a single query
+            $grades = DB::table('grades')
+                ->where('grades.student_id', $student1->id)
+                ->join('tests', 'tests.id', '=', 'grades.test_id')
+                ->join('class_subjects', 'class_subjects.id', '=', 'tests.class_subject_id')
+                ->join('subjects', 'subjects.id', '=', 'class_subjects.subject_id')
+                ->select('subjects.name as subject_name', 'tests.type as test_type', 'grades.grade')
+                ->get();
+
+            // Group grades by subject and type
+            $groupedGrades = [];
+            foreach ($grades as $grade) {
+                $groupedGrades[$student1_id][$grade->subject_name][$grade->test_type][] = $grade->grade;
+            }
+
+            // Calculate the averages
+            $student_grade_in_subject = [];
+            foreach ($subjects as $subject) {
+                $subjectName = $subject->name;
+                $total_garde[$subjectName] = $subject->total_grade;
+                foreach ($types as $type) {
+
+                    $avg_by_type[$student1_id][$subjectName][$type] = isset($groupedGrades[$student1_id][$subjectName][$type])
+                        ? array_sum($groupedGrades[$student1_id][$subjectName][$type]) / count($groupedGrades[$student1_id][$subjectName][$type])
+                        : null; // or 0 or another default value
+
+                }
+                $student_grade_in_subject[$student1_id][$subjectName] = array_sum($avg_by_type[$student1_id][$subjectName]);
+            }
+
+            $grades1[$student1_id] = array_sum($student_grade_in_subject[$student1_id]);
+            arsort($grades1);
         }
 
-        $total_garde1=array_sum($total_garde);
+        $total_garde1 = array_sum($total_garde);
 
         $response_data = [
             'total_grade' => $total_garde1,
             'grades' => $grades1,
-            'mine'=>$mine,
+            'mine' => $mine,
             'students' => $students
         ];
 
-        foreach($students as $student2){
-            $student2_id=$student2->id;
-            $st[$student2_id]=[
+        foreach ($students as $student2) {
+            $student2_id = $student2->id;
+            $st[$student2_id] = [
                 $total_garde1,
                 $grades1[$student2_id],
                 $mine[$student2_id],
@@ -304,15 +303,14 @@ class GradesController extends Controller
             ];
         }
         arsort($st);
-        $convertedData = array_map(function($item) {
+        $convertedData = array_map(function ($item) {
             return [
                 'total_grade' => $item[0],
                 'grade' => $item[1],
                 'mine' => $item[2],
                 'student' => $item[3]
             ];
-        },$st);
+        }, $st);
         return response()->json(array_values((array) $convertedData));
-        
     }
 }
