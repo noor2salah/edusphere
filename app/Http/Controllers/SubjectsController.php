@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\Validator;
 use GuzzleHttp\Psr7\UploadedFile;
 
 class SubjectsController extends Controller
-{//
+{
     public function store_subject(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -471,6 +471,9 @@ class SubjectsController extends Controller
 
     }
   
+<<<<<<< HEAD
+    public function show_the_schedule_for_teacher(Request $request)
+=======
     public function show_the_schedule_for_teacher(){
 
         $user_id = Auth::id();
@@ -500,6 +503,7 @@ class SubjectsController extends Controller
 
     }
     public function show_subjects_of_the_class(Request $request)
+>>>>>>> dfc41436faa7adcd1b42b99adf78fe3c047273e9
     {
         $the_class=$request->input('class_level');
         $subjects = DB::table('subjects')
