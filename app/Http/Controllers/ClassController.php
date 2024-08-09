@@ -88,7 +88,7 @@ class ClassController extends Controller
         return response()->json($class);
 
     }
-    public function detete_class($id)
+    public function delete_class($id)
     {
         $classes = classs::find($id);
         if (!$classes) {
@@ -98,6 +98,20 @@ class ClassController extends Controller
 
             ]);
         }
+
+        $check=DB::table('students')
+        ->where('students.class_id',$id)
+        ->select('students.*')
+        ->get();
+
+        if (count($check)!==0) {
+
+            return response()->json([
+                'message' => 'there is students in this class , go to edit student and change there class id , then you can delete this class',
+
+            ]);
+        }
+
         $classes->delete();
         return response()->json([
             'message' => 'class deleted successfully',
@@ -113,16 +127,7 @@ class ClassController extends Controller
         ], 200);
 
         }*/
-    public function EditClass($id,Request $request)
-    {
-        $class = classs::find($id);
-        if(!$class)
-        {
-            return response()->json('class not found');
-        }
-        $class->update($request->all());
-        return response()->json($class,200);
-    }
+   
 
 
 

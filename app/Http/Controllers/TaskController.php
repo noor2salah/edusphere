@@ -341,8 +341,9 @@ class TaskController extends Controller
 
             $correct_answers[$i]=DB::table('question_answers')
             ->where('question_answers.task_question_id', $task_question->id)
+            ->join('task_questions','task_questions.id','question_answers.task_question_id')
             ->where('question_answers.correct_answer', '1')
-            ->select('question_answers.*')
+            ->select('question_answers.the_answer','task_questions.the_question')
             ->first();
 
         }
@@ -353,7 +354,10 @@ class TaskController extends Controller
             'grade' => $the_grade
         ]);
 
-        return response([$the_grade, $correct_answers]);
+        return response([
+            'grade'=>$the_grade,
+             'question and correct answer'=>$correct_answers
+        ]);
     }
 
     public function show_question(Request $request)

@@ -128,7 +128,11 @@ Route::group(["middleware" => "translate"], function () {
     Route::post('show_all_class_numbers', [ClassController::class, 'show_all_class_numbers']);
     
     Route::post('store_class_subject', [SubjectsController::class, 'store_class_subject']);
-    Route::delete('class/{id}', [ClassController::class, 'detete_class']);
+    Route::post('edit_subject', [SubjectsController::class, 'edit_subject']);
+    Route::post('edit_class_subject', [SubjectsController::class, 'edit_class_subject']);
+
+    Route::delete('delete_subject/{id}', [SubjectsController::class, 'delete_subject']);
+    Route::delete('delete_class/{id}', [ClassController::class, 'delete_class']);
     Route::post('show_subjects_of_the_class', [SubjectsController::class, 'show_subjects_of_the_class']);  
     Route::get('show_all_subjects', [SubjectsController::class, 'show_all_subjects']);  
     Route::post('show_subject', [SubjectsController::class, 'show_subject']);
