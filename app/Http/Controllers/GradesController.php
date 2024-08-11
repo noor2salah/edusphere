@@ -13,9 +13,13 @@ use App\Models\class_subject;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use PHPUnit\Util\ExcludeList;
+use App\Http\Traits\NotificationsTrait;
+
 
 class GradesController extends Controller
 {
+    use NotificationsTrait;
+
     public function store_grade_test(Request $request)
     {
         $e = $request->all();
@@ -79,6 +83,18 @@ class GradesController extends Controller
             'test_id' => $request->test_id,
             'grade' => $request->grade,
         ]);
+
+
+        $tokens = User::
+        join('students','students.user_id','users.id')
+        ->where('students.id', $request->student_id)
+        ->pluck('fcm_token')->toArray(); 
+        
+        $title = 'New Grade';
+        $body = 'A new grade has been posted.';
+        
+        $this->sendNotification($title, $body,$tokens); 
+    
 
         return response()->json([
             'grade' => $grade,

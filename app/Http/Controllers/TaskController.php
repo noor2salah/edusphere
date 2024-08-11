@@ -14,12 +14,18 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use App\Http\Traits\NotificationsTrait;
+
 
 class TaskController extends Controller
+
 {
+    use NotificationsTrait;
+
     public function store_task(request $request)
     {
         $validator = Validator::make($request->all(), [
+            'class_id'=>'required|integer',
             'questions' => 'required|array',
             'questions.*.the_question' => 'required|string',
             'questions.*.question_grade' => 'required|integer',
@@ -44,6 +50,7 @@ class TaskController extends Controller
 
         $class_subject_id = DB::table('class_subjects')
             ->where('class_subjects.teacher_id', $teacher_id)
+            ->where('class_subjects.class_id',$request->class_id)
             ->value('class_subjects.id');
 
         if (!$class_subject_id) {
@@ -90,6 +97,19 @@ class TaskController extends Controller
             ]);
             $question_answers[] = $question_answer;
         }
+
+        
+        $tokens = User::
+        join('students','students.user_id','users.id')
+        ->where('students.class_id', $request->class_id)
+        ->pluck('fcm_token')->toArray(); 
+        
+        $title = 'New Task';
+        $body = 'A new task has been uploaded.';
+        
+        $this->sendNotification($title, $body,$tokens); 
+    
+
 
         return response([$task, $task_questions, $question_answers], 200);
     }

@@ -169,7 +169,6 @@ Route::group(["middleware" => "translate"], function () {
 //task api's
 Route::group(["middleware"=>"translate"],function() {
 
-    Route::post('store_task', [TaskController::class, 'store_task']);
     Route::post('show_question',[TaskController::class,'show_question']);
 
 });
@@ -180,6 +179,8 @@ Route::group(["middleware" => ["auth:api", "translate"]], function () {
     Route::get('show_task/{id}', [TaskController::class, 'show_task']);
     Route::get('show_all_tasks_for_student', [TaskController::class, 'show_all_tasks_for_student']);
     Route::get('show_all_tasks_for_teacher', [TaskController::class, 'show_all_tasks_for_teacher']);
+    Route::post('store_task', [TaskController::class, 'store_task']);
+
 });
 
 //these Api's for wallet

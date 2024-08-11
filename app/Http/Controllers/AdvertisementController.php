@@ -9,12 +9,13 @@ use App\Models\classs;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
-
-
+use App\Http\Traits\NotificationsTrait;
 
 
 class AdvertisementController extends Controller
 {
+    use NotificationsTrait;
+
     public function index()
     {
         $advertisements = Advertisement::all();
@@ -61,11 +62,20 @@ class AdvertisementController extends Controller
             'photo_path' => $imageUrl,
         ]);
 
-        $tokens = User::where('class_id', $class->id)->pluck('fcm_token')->toArray(); // Retrieve FCM tokens from users associated with the class
-
+        $tokens = User::
+        join('students','students.user_id','users.id')
+        ->where('students.class_id', $class->id)
+        ->pluck('fcm_token')->toArray(); 
+        
+        $title = 'New Advertisement';
+        $body = 'A new advertisement has been posted.';
+        
+        $this->sendNotification($title, $body,$tokens); 
+    
       
         return response()->json([
             'advertisements' => $advertisement,
+            $tokens
         ], 200);
     }
     public function show(Request $request)

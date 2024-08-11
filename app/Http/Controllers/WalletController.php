@@ -12,10 +12,13 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\NewFee;
 use App\Models\Fee;
+use App\Http\Traits\NotificationsTrait;
+
 
 
 class WalletController extends Controller
 {
+    use NotificationsTrait;
 
     public function create_fee(Request $request)
     {
@@ -50,26 +53,40 @@ class WalletController extends Controller
             'due_date' => $due_date,
         ]);
     
-        // Fetch the students by their IDs
         $students = Student::get();
     
-        // Update the benefits for the fetched students
         foreach ($students as $student) {
 
             if($type=='school'){
                 $student->remain += $benefits;
                 $student->save();
+            $students_id[$student->id]=$student->id ;  
             }
 
             else if ($type=='bus' && $student->bus=='1'){
                 $student->remain += $benefits;
                 $student->save();
-            }
+                $students_id[$student->id]=$student->id ;  
 
-            
+            }
+            else if($type!=='bus'){
+                $students_id[$student->id]=$student->id ;  
+
+            }
+       
         }
+        $st=array_values($students_id);
+        
+        $tokens = User::
+        join('students','students.user_id','users.id')
+        ->where('students.id',$st)
+        ->pluck('fcm_token')->toArray(); 
+        $title = 'New Fee';
+        $body = 'A new fee has been added.';
+        
+        $this->sendNotification($title, $body,$tokens); 
     
-        // Return a success response with the created fee data
+
         return response()->json([
             'message' => trans('success'),
             'data' => $fee,
@@ -102,6 +119,16 @@ class WalletController extends Controller
             'description'=>'deposit',
             'fee_id'=>null
         ]);
+
+        $tokens = User::
+        join('students','students.user_id','users.id')
+        ->where('students.id',$student->id)
+        ->pluck('fcm_token')->toArray(); 
+        $title = 'Deposit';
+        $body = 'Deposit has been made to your account';
+        
+        $this->sendNotification($title, $body,$tokens); 
+    
 
         return response()->json([
             'message' => 'deposit successfully',
