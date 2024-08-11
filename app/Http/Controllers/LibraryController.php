@@ -144,4 +144,16 @@ class LibraryController extends Controller
 
     }
 
+    public function delete_book($id){
+        $book=library::find($id);
+
+        if(!$book){
+            return response('book not found');
+        }
+
+        $book->delete();
+        return response('book deleted successfully');
+
+    }
+
 }

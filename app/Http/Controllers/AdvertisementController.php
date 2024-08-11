@@ -6,8 +6,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use App\Models\advertisement;
 use App\Models\classs;
+use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+
 
 
 
@@ -41,9 +43,9 @@ class AdvertisementController extends Controller
         $class_number = $request->input('class_number');
 
 
-    $photo_path = $request->file('photo_path')->store('images','public');
+        $photo_path = $request->file('photo_path')->store('images','public');
 
-    $imageUrl = asset('storage/'.$photo_path);
+        $imageUrl = asset('storage/'.$photo_path);
 
         $class = Classs::where('class_level', $class_level)
             ->where('class_number', $class_number)
@@ -58,6 +60,8 @@ class AdvertisementController extends Controller
             'type'=>$request->type,
             'photo_path' => $imageUrl,
         ]);
+
+        $tokens = User::where('class_id', $class->id)->pluck('fcm_token')->toArray(); // Retrieve FCM tokens from users associated with the class
 
       
         return response()->json([

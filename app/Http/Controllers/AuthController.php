@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Events\StudentCreated;
 use App\Http\Middleware\Admin as MiddlewareAdmin;
+use App\Models\class_subject;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -348,12 +349,65 @@ public function login(Request $request)
             'message' => 'user logout successfully'
         ]);
     }
-    public function DeleteAccount($id)
+    public function delete_student_account($id)
     {
-        User::find($id)->delete();
+        $user=User::
+        where('users.id',$id)
+        ->where('users.role','=','student')
+        ->first();
+
+
+        if(!$user){
+            return response()->json([
+
+                'message' => 'student not found'
+            ]);
+        }
+
+        $user->delete();
+
         return response()->json([
 
-            'message' => 'your account deleted successfully'
+            'message' => 'account deleted successfully'
+        ]);
+    }
+
+    public function delete_teacher_account($id)
+    {
+        $user=User::
+        where('users.id',$id)
+        ->where('users.role','=','teacher')
+        ->first();
+
+
+        if(!$user){
+            return response()->json([
+
+                'message' => 'teacher not found'
+            ]);
+        }
+
+        $teacher=teacher::
+        where('teachers.user_id',$user->id)
+        ->first();
+
+        $check=class_subject::
+        where('class_subjects.teacher_id',$teacher->id)
+        ->select('class_subjects.*')
+        ->get();
+
+        if(count($check)!==0){
+            return response()->json([
+
+                'message' => 'this teacher still teache some classes , go and give these classes to another teacher , then you can delete the account'
+            ]);
+        }
+
+        $user->delete();
+
+        return response()->json([
+
+            'message' => 'account deleted successfully'
         ]);
     }
     public function userforgetpassword(Request $request)
@@ -683,6 +737,94 @@ public function login(Request $request)
             ], 200);
 
     }
+
+    public function edit_profile_student_for_admin(Request $request){
+        
+        $validator = Validator::make($request->all(), [
+            'student_id'=>'required|integer',
+            'parent_phone' => 'nullable|string|unique:students',
+            'parent_email' => 'nullable|string|email|unique:students',
+            'bus'=>'nullable|boolean'
+           
+        ]);
+
+        if($validator->fails())
+        {
+            return response()->json($validator->errors());
+        }
+
+        $student=student::find($request->student_id);
+
+        if(!$student){
+            return response()->json('student not found');
+        }
+
+        if($request->parent_phone){
+            $student->parent_phone=$request->parent_phone;
+        }
+
+        if($request->parent_email){
+            $student->parent_email=$request->parent_email;
+        }
+        
+        if(isset($request->bus)){
+            $student->bus=$request->bus;
+        }
+
+        $student->save();
+
+        return response()->json($student);
+
+
+    }
+    public function edit_profile_teacher_for_admin(Request $request){
+        
+        $validator = Validator::make($request->all(), [
+            'teacher_id'=>'required|integer',
+            'rate' => 'nullable|integer',
+            'salary' => 'nullable|integer',
+            'about' => 'nullable|string',
+            'cv'=> 'nullable|mimes:pdf',
+
+           
+        ]);
+
+        if($validator->fails())
+        {
+            return response()->json($validator->errors());
+        }
+
+        $teacher=teacher::find($request->teacher_id);
+
+        if(!$teacher){
+            return response()->json('teacher not found');
+        }
+
+        if($request->rate){
+            $teacher->rate=$request->rate;
+        }
+        
+        if($request->salary){
+            $teacher->salary=$request->salary;
+        }
+
+        if($request->about){
+            $teacher->about=$request->about;
+        }
+
+        if($request->hasFile('cv')){
+            $cv = $request->file('cv')->store('images','public');
+            $cvurl = asset('storage/'.$cv); 
+            $teacher->cv=$cvurl;
+        
+        }
+       
+        $teacher->save();
+
+        return response()->json($teacher);
+
+
+    }
     public function profileAdmin()
     {
         $profile = User::where('role','admin')->get();
@@ -774,6 +916,24 @@ public function login(Request $request)
 
 
     }
+
+    public function add_fcm_to_user(Request $request){
+
+
+        $request->validate([
+            'user_id' => 'required|exists:users,id',
+            'fcm_token' => 'required|string|unique:users',
+        ]);
+    
+        $user = User::find($request->user_id);
+        $user->fcm_token = $request->fcm_token;
+        $user->save();
+    
+        return response()->json(['status' => 'success'], 200);
+    
+    
+    }
+
 
 
 }

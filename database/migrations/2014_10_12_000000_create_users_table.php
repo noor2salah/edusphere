@@ -16,6 +16,7 @@ return new class extends Migration
 
             $table->bigIncrements('id');
             $table->string('uid')->nullable();
+            $table->string('fcm_token')->nullable(); 
             $table->string('first_name');
             $table->string('last_name');
             $table->date('birthdate');

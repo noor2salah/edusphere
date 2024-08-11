@@ -26,6 +26,7 @@ class User extends Authenticatable
     protected $fillable = [
         'id',
         'uid',
+        'fcm_token',
         'role',
         'first_name',
         'last_name',

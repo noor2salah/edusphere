@@ -171,7 +171,19 @@ class SubjectsController extends Controller
         if(!$teacher){
             return response('there is no teacher');
         }
+        $teacher_subject_check =DB::table('class_subjects')
+        ->where('class_subjects.teacher_id',$request->teacher_id)
+        ->where('class_subjects.class_id',$request->class_id)
+        ->value('class_subjects.subject_id');
 
+        if($teacher_subject_check){
+            if($teacher_subject_check!==$request->subject_id){
+                return response(['same teacher can not teach tow subjects fot the same class']);
+            }
+    
+        }
+
+        
         $check1 = DB::table('class_subjects')
         ->where('class_subjects.class_id', $request->class_id)
         ->where(function ($query) use ($request) {
@@ -471,9 +483,6 @@ class SubjectsController extends Controller
 
     }
   
-<<<<<<< HEAD
-    public function show_the_schedule_for_teacher(Request $request)
-=======
     public function show_the_schedule_for_teacher(){
 
         $user_id = Auth::id();
@@ -503,7 +512,6 @@ class SubjectsController extends Controller
 
     }
     public function show_subjects_of_the_class(Request $request)
->>>>>>> dfc41436faa7adcd1b42b99adf78fe3c047273e9
     {
         $the_class=$request->input('class_level');
         $subjects = DB::table('subjects')

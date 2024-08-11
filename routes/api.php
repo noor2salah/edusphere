@@ -46,13 +46,18 @@ Route::group(["middleware" => "translate"], function () {
     Route::post('login', [AuthController::class, 'login']);
     Route::post('loginAdmin', [AuthController::class, 'loginAdmin']);
     Route::post('generate_code', [AuthController::class, 'generate_code']);
-    Route::delete('deleteAccount/{id}', [AuthController::class, 'DeleteAccount']);
+    Route::delete('delete_student_account/{id}', [AuthController::class, 'delete_student_account']);
+    Route::delete('delete_teacher_account/{id}', [AuthController::class, 'delete_teacher_account']);
+    Route::post('edit_profile_student_for_admin', [AuthController::class, 'edit_profile_student_for_admin']);
+    Route::post('edit_profile_teacher_for_admin', [AuthController::class, 'edit_profile_teacher_for_admin']);
+
     Route::post('passwordforget', [AuthController::class, 'userforgetpassword']);
     Route::post('checkcodepassword', [AuthController::class, 'usercheckcode']);
     Route::post('resetpassword', [AuthController::class, 'userresetpassword']);
     Route::get('profileteacher/{id}', [AuthController::class, 'profileteacher']);
     Route::get('profilestudent/{id}', [AuthController::class, 'profileStudent']);
     Route::post('add_uid_to_user', [AuthController::class, 'add_uid_to_user']);
+    Route::post('add_fcm_to_user', [AuthController::class, 'add_fcm_to_user']);
     Route::post('get_data_from_uid', [AuthController::class, 'get_data_from_uid']);
 
 });
@@ -93,6 +98,7 @@ Route::group(["middleware" => ["auth:api", "translate"]], function () {
 //Book api's
 Route::group(["middleware" => "translate"], function () {
     Route::post('store_book', [LibraryController::class, 'store']);
+    Route::delete('delete_book/{id}', [LibraryController::class, 'delete_book']);
 
 });
 
@@ -225,11 +231,12 @@ Route::group(["middleware" => ["auth:api", "translate"]], function () {
 
 //show students for admin
 
+Route::get('number_of_total_school_students_for_admin', [StudentController::class, 'number_of_total_school_students_for_admin']);
+Route::post('number_of_total_class_level_students', [StudentController::class, 'number_of_total_class_level_students']);
+Route::post('number_of_total_class_students', [StudentController::class, 'number_of_total_class_students']);
+
 Route::group(["middleware"=>"translate"],function() {
 
-    Route::get('number_of_total_school_students_for_admin', [StudentController::class, 'number_of_total_school_students_for_admin']);
-    Route::post('number_of_total_class_level_students', [StudentController::class, 'number_of_total_class_level_students']);
-    Route::post('number_of_total_class_students', [StudentController::class, 'number_of_total_class_students']);
     Route::post('show_students_in_class', [StudentController::class, 'show_students_in_class']);
     Route::post('show_student_profile', [StudentController::class, 'show_student_profile']);
     
@@ -240,4 +247,12 @@ Route::group(["middleware"=>"translate"],function() {
 
     Route::get('show_all_teachers', [TeacherController::class, 'show_all_teachers']);
     
+});
+
+//classes and student for teacher
+Route::group(["middleware" => ["auth:api", "translate"]], function () {
+
+    Route::get('show_classes_for_teacher', [TeacherController::class, 'show_classes_for_teacher']);
+    Route::post('show_students_by_class_for_teacher', [TeacherController::class, 'show_students_by_class_for_teacher']);
+
 });

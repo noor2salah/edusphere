@@ -37,6 +37,10 @@ class TaskController extends Controller
             ->where('teachers.user_id', $user_id)
             ->value('teachers.id');
 
+        if(!$teacher_id){
+
+            return response('you are not teacher');
+        }    
 
         $class_subject_id = DB::table('class_subjects')
             ->where('class_subjects.teacher_id', $teacher_id)
