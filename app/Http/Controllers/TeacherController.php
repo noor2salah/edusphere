@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\classs;
 use App\Models\subject;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -12,22 +13,40 @@ use Symfony\Component\HttpKernel\Profiler\Profile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 
-
-
 class TeacherController extends Controller
 {
-    public function show_all_teachers(){
+    public function show_all_teachers(Request $request){
+
+        $validator = Validator::make($request->all(), [
+            'class_level' => 'required|integer',
+            'class_number' => 'required|integer',
+            
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 400);
+        }
+        $class_id=classs::
+        where('classses.class_level',$request->class_level)
+        ->where('classses.class_number',$request->class_number)
+        ->value('classses.id');
+        
+        if(!$class_id){
+            return response()->json('class not found', 400);
+        }
 
         $teachers = DB::table('users')
         ->join('teachers','teachers.user_id','users.id')
-        ->select('teachers.id','users.first_name','users.last_name','teachers.specialization')
+        ->join('class_subjects','class_subjects.teacher_id','teachers.id')
+        ->where('class_subjects.class_id',$class_id)
+        ->select('users.*','teachers.*')
         ->get();
 
         if(count($teachers)==0){
-            return response('there is no teachers');
+            return response()->json('there is no teacher for this class', 400);
         }
 
-        return response($teachers,200);
+        return response()->json($teachers, 200);
     }
 
     public function show_classes_for_teacher(){

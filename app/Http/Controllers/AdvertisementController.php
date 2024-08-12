@@ -75,7 +75,6 @@ class AdvertisementController extends Controller
       
         return response()->json([
             'advertisements' => $advertisement,
-            $tokens
         ], 200);
     }
     public function show(Request $request)
@@ -85,7 +84,7 @@ class AdvertisementController extends Controller
         $advertisements = advertisement::find($id);
         if (!$advertisements) {
             return response()->json([
-                'message' => 'not found any Advertisements',
+                'message' => 'not found ',
 
             ], 200);
         }
@@ -192,6 +191,65 @@ class AdvertisementController extends Controller
         return response()->json([
             'message' => 'advertisements deleted successfully',
         ]);
+    }
+
+    public function show_all_by_class_by_type_for_admin(Request $request)
+    {
+
+        $validator = Validator::make($request->all(), [
+            
+            'class_level' => 'required|integer',
+            'class_number' => 'required|integer',
+            'type'=>'required|string',
+        ]);
+
+        $request->validate([
+
+            'type' => 'required|in:bus,trips,wallet,exam,results,instuctions,other,all',
+        ]);
+        
+        if ($validator->fails()) {
+            return response()->json($validator->errors());
+        }
+
+        $class_id=classs::
+        where('classses.class_level',$request->class_level)
+        ->where('classses.class_number',$request->class_number)
+        ->value('classses.id');
+        
+        if(!$class_id){
+            return response()->json('class not found', 400);
+        }
+
+        if($request->type=='all'){
+
+            $advertisements=DB::table('advertisements')
+            ->where('advertisements.class_id',$class_id)
+            ->select('advertisements.*')
+            ->get();
+    
+        }
+
+        else{
+
+            $advertisements=DB::table('advertisements')
+            ->where('advertisements.class_id',$class_id)
+            ->where('advertisements.type',$request->type)
+            ->select('advertisements.*')
+            ->get();
+    
+        }
+        if (count($advertisements)==0) {
+            return response()->json([
+                'message' => 'ther is no Advertisement',
+
+            ], 400);
+        }
+
+        return response()->json([
+            'message' => 'retruved successfully',
+            'data' => $advertisements,
+        ], 200);
     }
 }
 

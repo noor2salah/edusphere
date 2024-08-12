@@ -15,6 +15,7 @@ class task extends Model
     protected $fillable = [
         'id',
         'class_subject_id',
+        'finished',
         'total_grade'
     ];
     public function class_subject(){

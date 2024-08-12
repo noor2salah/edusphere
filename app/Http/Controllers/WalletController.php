@@ -307,18 +307,84 @@ class WalletController extends Controller
 
     public function all_wallet_balance()
     {
-        $students = student::all();
-
-        $totalBalance = [];
-        foreach ($students as $student) {
-            $totalBalance[$student->id] = $student->wallet_balance;
-        }
+        $students = student::all();     
         $sum_balance = $students->sum('wallet_balance');
         return response()->json([
-            'Balance' => $totalBalance,
             'sum' => $sum_balance,
         ]);
     }
+    public function all_wallets_by_classes(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            
+            'class_level' => 'required|integer',
+            'class_number' => 'required|integer',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json($validator->errors());
+        }
+
+        $class_id=DB::table('classses')
+        ->where('classses.class_level',$request->class_level)
+        ->where('classses.class_number',$request->class_number)
+        ->value('classses.id');
+        
+        if(!$class_id){
+            return response()->json('class not found', 400);
+        }
+
+        $students = DB::table('users')
+        ->join('students','students.user_id','users.id')
+        ->where('students.class_id',$class_id)
+        ->select('students.id','students.wallet_balance','users.first_name','users.last_name')
+        ->get();
+
+        if(!$students){
+            return response()->json('this class is empty', 400);
+        }
+
+        return response()->json($students,200);
+    }
+
+    public function show_wallet_details_for_admin(Request $request)
+    {
+        
+        $validator = Validator::make($request->all(), [
+            
+            'student_id' => 'required|integer',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json($validator->errors());
+        }
+
+        $student = student::find($request->student_id);
+        if(!$student){
+            return response()->json('student not found', 400);
+        }
+        $balance = student::where('id', $request->student_id)->get(['wallet_balance','remain']);
+        $withdraw = DB::table('about_wallets')
+        ->join('fees','fees.id','about_wallets.fee_id')
+        ->where('about_wallets.student_id', $request->student_id)
+        ->select('fees.*','about_wallets.*')
+        ->get();
+    
+        
+
+        $deposit= DB::table('about_wallets')
+        ->where('student_id', $request->student_id)
+        ->where('about_wallets.description','deposit')
+        ->select('about_wallets.*')
+        ->get();
+
+        return response()->json([
+            'balance' => $balance,
+            'withdraw' => $withdraw,
+            'deposit'=>$deposit
+        ],200);
+    }
+
 
 
 }

@@ -18,7 +18,8 @@ return new class extends Migration
 
             $table->unsignedBigInteger('class_subject_id');
             $table->foreign('class_subject_id')->references('id')->on('class_subjects')->onDelete('cascade');
-            
+            $table->boolean('finished')->default(0);
+
             $table->timestamps();
         });
     }

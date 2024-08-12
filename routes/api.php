@@ -85,6 +85,7 @@ Route::group(["middleware" => "translate"], function () {
     Route::post('StoreAdvertisements', [AdvertisementController::class, 'store']);
     Route::get('Advertisements', [AdvertisementController::class, 'index']);
     Route::post('Advertisement', [AdvertisementController::class, 'show']);
+    Route::post('show_all_by_class_by_type_for_admin', [AdvertisementController::class, 'show_all_by_class_by_type_for_admin']);
     Route::delete('destroy/{id}', [AdvertisementController::class, 'destroy']);
 });
 
@@ -180,16 +181,21 @@ Route::group(["middleware" => ["auth:api", "translate"]], function () {
     Route::get('show_all_tasks_for_student', [TaskController::class, 'show_all_tasks_for_student']);
     Route::get('show_all_tasks_for_teacher', [TaskController::class, 'show_all_tasks_for_teacher']);
     Route::post('store_task', [TaskController::class, 'store_task']);
+    Route::post('lock_task', [TaskController::class, 'lock_task']);
+    Route::post('store_question', [TaskController::class, 'store_question']);
+    Route::get('show_classes_for_teacher_for_joud', [TaskController::class, 'show_classes_for_teacher_for_joud']);
 
 });
 
-//these Api's for wallet
+//wallet
 
 Route::group(["middleware"=>"translate"],function() {
 
     Route::post('create_fee', [WalletController::class, 'create_fee']);
     Route::post('deposit_wallet', [WalletController::class, 'deposit_wallet']);
     Route::get('all_wallet_balance', [WalletController::class, 'all_wallet_balance']);
+    Route::post('all_wallets_by_classes', [WalletController::class, 'all_wallets_by_classes']);
+    Route::post('show_wallet_details_for_admin', [WalletController::class, 'show_wallet_details_for_admin']);
 
 });
 
@@ -246,7 +252,7 @@ Route::group(["middleware"=>"translate"],function() {
 //show teachers for admin
 Route::group(["middleware"=>"translate"],function() {
 
-    Route::get('show_all_teachers', [TeacherController::class, 'show_all_teachers']);
+    Route::post('show_all_teachers', [TeacherController::class, 'show_all_teachers']);
     
 });
 
