@@ -24,7 +24,7 @@ class CreateAdminSeeder extends Seeder
             'phone' => '07777777',
             'birthdate' => '2024-12-12',
             'address' => 'Daraa',
-            'profile_picture_path' => null,
+            'profile_picture_path' => 'storage\images\ITClZCt4oMrvwBeRqVkttDac8IEzUZ5JIcFrD0Cg.png',
             'gender' => 'male',
 
         ]);

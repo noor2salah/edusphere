@@ -99,12 +99,12 @@ Route::group(["middleware" => ["auth:api", "translate"]], function () {
 Route::group(["middleware" => "translate"], function () {
     Route::post('store_book', [LibraryController::class, 'store']);
     Route::delete('delete_book/{id}', [LibraryController::class, 'delete_book']);
-
-});
-
-Route::group(["middleware" => ["auth:api", "translate"]], function () {
+    
     Route::get('show_educational_book', [LibraryController::class, 'show_educational']);
     Route::get('show_entertainment_book', [LibraryController::class, 'show_entertainment']);
+    Route::post('show_all_books', [LibraryController::class, 'show_all_books']);
+
+
 });
 
 //teacher list Api's

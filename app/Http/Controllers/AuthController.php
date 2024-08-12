@@ -203,7 +203,11 @@ public function AddAccountTeacher(Request $request)
         'education' => 'required|string',
         'salary' => 'required',
         'cv'=> 'required|mimes:pdf',
+        'class_level'=>'required|integer',
 
+    ]);
+    $request->validate([
+        'class_level' => 'required|in:7,8,9',
     ]);
 
     if ($validator->fails()) {
@@ -255,7 +259,8 @@ public function AddAccountTeacher(Request $request)
             'salary' => $request->salary,
             'education' => $request->education,
             'about'=>$request->about,
-            'cv'=>$cvurl
+            'cv'=>$cvurl,
+            'class_level'=>$request->class_level
         ]);
 
 
@@ -317,9 +322,29 @@ public function login(Request $request)
 
         $token = $user->createToken('token')->accessToken;
 
+        if($user->role=='teacher'){
+
+            $user1=DB::table('users')
+            ->where('users.id',$user->id)
+            ->join('teachers','teachers.user_id','users.id')
+            ->select('teachers.*','teachers.id as teacher_id','users.*')
+            ->get();
+
+        }
+
+        if($user->role=='student'){
+
+            $user1=DB::table('users')
+            ->where('users.id',$user->id)
+            ->join('students','students.user_id','users.id')
+            ->join('classses','classses.id','students.class_id')
+            ->select('classses.class_level','students.*','students.id as student_id','users.*')
+            ->first();
+
+        }
         return response()->json([
             'token' => $token,
-            'data' => $user,
+            'data' => $user1,
             'message' => 'user login successfully'
         ]);
     }

@@ -24,7 +24,7 @@ class SubjectsController extends Controller
             'the_class' => 'required|integer',
             'about_subject' => 'required|string',
             'total_grade'=>'required|integer',
-            'photo_path'=> 'nullable|image|max:2048',
+            'photo_path'=> 'required|image|max:2048',
             'book_path' => 'required|mimes:pdf',
         ]);
         if ($validator->fails()) {
@@ -78,7 +78,7 @@ class SubjectsController extends Controller
             'unit_number' => 'required|integer',
             'title' => 'required|string',
             'description' => 'required|string',
-            'photo_path' => 'nullable|image|max:2048'
+            'photo_path' => 'required|image|max:2048'
 
         ]);
         if ($validator->fails()) {
@@ -149,7 +149,8 @@ class SubjectsController extends Controller
         ->get();
 
         if(count($class_level2)==0){
-            return response('the subject you are trying to put is not for this class');
+            return response()->json('the subject you are trying to put is not for this class',400);
+
         }
 
 
@@ -160,7 +161,7 @@ class SubjectsController extends Controller
         ->get();
 
         if(count($class_subject)!=0){
-            return response('already exist');
+            return response()->json('already exist',400);
         }
 
         $teacher=DB::table('teachers')
@@ -169,7 +170,7 @@ class SubjectsController extends Controller
         ->first();
 
         if(!$teacher){
-            return response('there is no teacher');
+            return response()->json('there is no teacher',400);
         }
         $teacher_subject_check =DB::table('class_subjects')
         ->where('class_subjects.teacher_id',$request->teacher_id)
@@ -178,9 +179,19 @@ class SubjectsController extends Controller
 
         if($teacher_subject_check){
             if($teacher_subject_check!==$request->subject_id){
-                return response(['same teacher can not teach tow subjects fot the same class']);
+                return response()->json('same teacher can not teach tow subjects fot the same class',400);
+
             }
-    
+       
+        }
+        $teacher_subject_check1 =DB::table('classses')
+        ->where('classses.id',$request->class_id)
+        ->where('classses.class_level',$teacher->class_level)
+        ->value('classses.class_level');
+        
+        if(!$teacher_subject_check1){
+            return response()->json('this teacher does not teach this class',400);
+
         }
 
         
@@ -212,8 +223,7 @@ class SubjectsController extends Controller
         ->first();
 
         if($check1){
-            return response('you can not store tow subjects at the same time for the same class');
-
+            return response()->json('you can not store tow subjects at the same time for the same class',400);
         }
 
         $check2=DB::table('class_subjects')
@@ -244,8 +254,7 @@ class SubjectsController extends Controller
         ->first();
 
         if($check2){
-            return response('same techer can not be at tow classes at the same time ');
-
+            return response()->json('same techer can not be at tow classes at the same time ',400);
         }
 
         $check3=DB::table('class_subjects')
@@ -256,7 +265,7 @@ class SubjectsController extends Controller
         ->first();
         
         if($check3){
-            return response('there is alredy an exam in the date and time for this class ');
+            return response()->json('there is alredy an exam in the date and time for this class ',400);
 
         }
         $class_subject = class_subject::create([
