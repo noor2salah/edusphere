@@ -14,19 +14,94 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use App\Http\Traits\NotificationsTrait;
+
 
 class TaskController extends Controller
+
 {
+    use NotificationsTrait;
+
     public function store_task(request $request)
     {
         $validator = Validator::make($request->all(), [
-            'questions' => 'required|array',
-            'questions.*.the_question' => 'required|string',
-            'questions.*.question_grade' => 'required|integer',
+            'class_id'=>'required|integer',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json($validator->errors());
+        }
+
+        $user_id = Auth::id();
+        $teacher_id = DB::table('teachers')
+            ->where('teachers.user_id', $user_id)
+            ->value('teachers.id');
+
+        if(!$teacher_id){
+
+            return response()->json('you are not a techer',400);
+        }    
+
+        $class_subject_id = DB::table('class_subjects')
+            ->where('class_subjects.teacher_id', $teacher_id)
+            ->where('class_subjects.class_id',$request->class_id)
+            ->value('class_subjects.id');
+
+        if (!$class_subject_id) {
+            return response()->json('try_again',400);
+        }
+        $task = task::create([
+            'class_subject_id' => $class_subject_id,
+            'finished'=>0,
+            'total_grade' => 0
+
+        ]);
+
+        return response()->json($task,200);
+
+    }
+    public function lock_task(request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'task_id'=>'required|integer',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json($validator->errors());
+        }
+
+        $user_id = Auth::id();
+        $teacher_id = DB::table('teachers')
+            ->where('teachers.user_id', $user_id)
+            ->value('teachers.id');
+
+        if(!$teacher_id){
+
+            return response()->json('you are not a techer',400);
+        }    
+
+       
+        $task = task::find($request->task_id);
+
+        if(!$task){
+            return response()->json('task not found',400);
+        }
+
+        $task->finished=1;
+        $task->save();
+
+        return response()->json($task,200);
+
+    }
+    public function store_question(request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'task_id'=>'required|integer',
+            'the_question' => 'required|string',
+            'question_grade' => 'required|integer',
             'answers' => 'required|array',
             'answers.*.the_answer' => 'required|string',
             'answers.*.correct_answer' => 'required|boolean',
-            'answers.*.task_question_id' => 'required|string'
         ]);
         if ($validator->fails()) {
             return response()->json($validator->errors());
@@ -37,57 +112,67 @@ class TaskController extends Controller
             ->where('teachers.user_id', $user_id)
             ->value('teachers.id');
 
+        if(!$teacher_id){
+            return response()->json('you are not teacher',400);
+        }    
 
         $class_subject_id = DB::table('class_subjects')
-            ->where('class_subjects.teacher_id', $teacher_id)
-            ->value('class_subjects.id');
+        ->where('class_subjects.teacher_id', $teacher_id)
+        ->join('tasks','tasks.class_subject_id','class_subjects.id')
+        ->value('class_subjects.id');
 
         if (!$class_subject_id) {
-            return response('try again');
+            return response()->json('try again',400);
+
         }
 
-        $task_grade = 0;
-        foreach ($request->questions as $question_data) {
+        $task=task::where('tasks.id',$request->task_id)->first();
 
-            $task_grade += $question_data['question_grade'];
+        if (!$task) {
+            return response()->json('this task not found',400);
         }
-        $task = task::create([
-            'class_subject_id' => $class_subject_id,
-            'total_grade' => $task_grade
 
-        ]);
-        $task_questions = [];
+
+        if($task->finished ){
+                return response()->json('this task is locked',400); 
+        }
+        $task_question = Task_question::create([
+            'task_id' => $task->id,
+            'the_question' => $request->the_question,
+            'question_grade' => $request->question_grade
+        ]);            
         $question_answers = [];
-        foreach ($request->questions as $question_data) {
-            $task_question = Task_question::create([
-                'task_id' => $task->id,
-                'the_question' => $question_data['the_question'],
-                'question_grade' => $question_data['question_grade']
-            ]);
-            $task_questions[] = $task_question;
-        }
-        foreach ($request->answers as $answer_data) {
-            $check = DB::table('tasks')
-                ->where('tasks.id', $task->id)
-                ->join('task_questions', 'tasks.id', 'task_questions.task_id')
-                ->where('task_questions.id', $answer_data['task_question_id'])
-                ->value('task_questions.id');
-
-            if (!$check) {
-                return response('this answer for this question does not belong to this task');
-            }
-        }
 
         foreach ($request->answers as $answer_data) {
             $question_answer = question_answer::create([
-                'task_question_id' => $answer_data['task_question_id'],
+                'task_question_id' => $task_question->id,
                 'the_answer' => $answer_data['the_answer'],
                 'correct_answer' => $answer_data['correct_answer']
             ]);
             $question_answers[] = $question_answer;
         }
 
-        return response([$task, $task_questions, $question_answers], 200);
+        
+        $task_grade = $task->total_grade + $request->question_grade;
+        $task->total_grade=$task_grade;
+        $task->save();
+        
+        $tokens = User::
+        join('students','students.user_id','users.id')
+        ->where('students.class_id', $request->class_id)
+        ->pluck('fcm_token')->toArray(); 
+        
+        $title = 'New Task';
+        $body = 'A new task has been uploaded.';
+        
+        $this->sendNotification($title, $body,$tokens); 
+    
+
+
+        return response([
+            'question'=>$task_question,
+            'answers'=>$question_answers
+        ], 200);
     }
 
     public function show_all_tasks_for_student()
@@ -106,9 +191,8 @@ class TaskController extends Controller
             return response()->json('You are not student', 403);
         }
 
-
-
         $tasks = DB::table('tasks')
+            ->where('tasks.finished','1')
             ->join('class_subjects', 'class_subjects.id', 'tasks.class_subject_id')
             ->join('classses', 'classses.id', 'class_subjects.class_id')
             ->where('classses.id', $student->class_id)
@@ -176,13 +260,42 @@ class TaskController extends Controller
             ->join('subjects', 'subjects.id', 'class_subjects.subject_id')
             ->join('teachers', 'teachers.id', 'class_subjects.teacher_id')
             ->where('teachers.id', $teacher_id)
-            ->join('users', 'users.id', 'teachers.user_id')
-            ->select('tasks.*', 'subjects.name', 'users.first_name', 'users.last_name')
+            ->join('classses', 'classses.id', 'class_subjects.class_id')
+            ->select('tasks.id','tasks.finished','tasks.total_grade', 'subjects.name as subject_name','classses.class_level','classses.class_number' )
             ->get();
 
-        return response($tasks);
+        return response()->json(['tasks'=>$tasks], 200);
     }
 
+
+    public function show_classes_for_teacher_for_joud(){
+
+        $user_id = Auth::id();
+        $teacher_id = DB::table('teachers')
+            ->where('teachers.user_id', $user_id)
+            ->value('teachers.id');
+
+        if(!$teacher_id){
+
+            return response()->json('You are not teacher', 403);
+        }
+        
+        $class_subject = DB::table('class_subjects')
+            ->where('class_subjects.teacher_id', $teacher_id)
+            ->join('classses','classses.id','class_subjects.class_id')
+            ->select('classses.class_level','classses.class_number','classses.id')
+            ->orderBy('classses.class_level')
+            ->orderBy('classses.class_number')
+            ->get();
+
+        if(count($class_subject)==0){
+
+            return response()->json('there is no classes for you', 403);
+
+        }    
+            return response()->json(['classes'=>$class_subject],200);
+
+    }
 
     public function show_task($id)
     {
@@ -201,7 +314,7 @@ class TaskController extends Controller
         }
 
 
-        $task = task::find($id);
+        $task = task::where('tasks.finished','1')->find($id);
 
         if (!$task) {
             return response('there is no task');
@@ -286,7 +399,7 @@ class TaskController extends Controller
             return response()->json($validator->errors(), 400);
         }
 
-        $task = task::find($request->task_id);
+        $task = task::where('tasks.finished','1')->find($request->task_id);
 
         if (!$task) {
             return response()->json(['error' => 'Task not found'], 404);
@@ -341,8 +454,9 @@ class TaskController extends Controller
 
             $correct_answers[$i]=DB::table('question_answers')
             ->where('question_answers.task_question_id', $task_question->id)
+            ->join('task_questions','task_questions.id','question_answers.task_question_id')
             ->where('question_answers.correct_answer', '1')
-            ->select('question_answers.*')
+            ->select('question_answers.the_answer','task_questions.the_question')
             ->first();
 
         }
@@ -353,7 +467,10 @@ class TaskController extends Controller
             'grade' => $the_grade
         ]);
 
-        return response([$the_grade, $correct_answers]);
+        return response([
+            'grade'=>$the_grade,
+             'question and correct answer'=>$correct_answers
+        ]);
     }
 
     public function show_question(Request $request)

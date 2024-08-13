@@ -69,8 +69,7 @@ class TestController extends Controller
         }
 
         $photoUrl = null;
-
-          
+                  
         if ($request->hasFile('exam_paper_path')){
             $exam_paper_path = $request->exam_paper_path->store('images', 'public');
             $photoUrl = asset('storage/' . $exam_paper_path);

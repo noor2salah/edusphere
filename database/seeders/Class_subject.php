@@ -85,7 +85,7 @@ class Class_subject extends Seeder
                 'updated_at' => now(),
             ],
             [
-                'teacher_id' =>2,
+                'teacher_id' =>4,
                 'class_id' => 3,
                 'subject_id' =>4 ,
                'time_on_sun' => null,
@@ -111,7 +111,7 @@ class Class_subject extends Seeder
                 'updated_at' => now(),
             ],
             [
-                'teacher_id' =>2,
+                'teacher_id' =>4,
                 'class_id' => 4,
                 'subject_id' =>4 ,
                'time_on_sun' => '4',
@@ -124,7 +124,7 @@ class Class_subject extends Seeder
                 'updated_at' => now(),
             ],
             [
-                'teacher_id' => 1,
+                'teacher_id' => 5,
                 'class_id' => 5,
                 'subject_id' =>5,
                 'time_on_sun' => null,
@@ -137,7 +137,7 @@ class Class_subject extends Seeder
                 'updated_at' => now(),
             ],
             [
-                'teacher_id' =>2,
+                'teacher_id' =>6,
                 'class_id' => 5,
                 'subject_id' =>6 ,
                 'time_on_sun' => null,
@@ -150,7 +150,7 @@ class Class_subject extends Seeder
                 'updated_at' => now(),
             ],
             [
-                'teacher_id' => 1,
+                'teacher_id' => 5,
                 'class_id' => 6,
                 'subject_id' =>5,
                'time_on_sun' => '6',
@@ -163,7 +163,7 @@ class Class_subject extends Seeder
                 'updated_at' => now(),
             ],
             [
-                'teacher_id' =>2,
+                'teacher_id' =>6,
                 'class_id' => 6,
                 'subject_id' =>6 ,
                 'time_on_sun' => '5',

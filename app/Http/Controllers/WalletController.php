@@ -12,10 +12,13 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\NewFee;
 use App\Models\Fee;
+use App\Http\Traits\NotificationsTrait;
+
 
 
 class WalletController extends Controller
 {
+    use NotificationsTrait;
 
     public function create_fee(Request $request)
     {
@@ -50,26 +53,40 @@ class WalletController extends Controller
             'due_date' => $due_date,
         ]);
     
-        // Fetch the students by their IDs
         $students = Student::get();
     
-        // Update the benefits for the fetched students
         foreach ($students as $student) {
 
             if($type=='school'){
                 $student->remain += $benefits;
                 $student->save();
+            $students_id[$student->id]=$student->id ;  
             }
 
             else if ($type=='bus' && $student->bus=='1'){
                 $student->remain += $benefits;
                 $student->save();
-            }
+                $students_id[$student->id]=$student->id ;  
 
-            
+            }
+            else if($type!=='bus'){
+                $students_id[$student->id]=$student->id ;  
+
+            }
+       
         }
+        $st=array_values($students_id);
+        
+        $tokens = User::
+        join('students','students.user_id','users.id')
+        ->where('students.id',$st)
+        ->pluck('fcm_token')->toArray(); 
+        $title = 'New Fee';
+        $body = 'A new fee has been added.';
+        
+        $this->sendNotification($title, $body,$tokens); 
     
-        // Return a success response with the created fee data
+
         return response()->json([
             'message' => trans('success'),
             'data' => $fee,
@@ -102,6 +119,16 @@ class WalletController extends Controller
             'description'=>'deposit',
             'fee_id'=>null
         ]);
+
+        $tokens = User::
+        join('students','students.user_id','users.id')
+        ->where('students.id',$student->id)
+        ->pluck('fcm_token')->toArray(); 
+        $title = 'Deposit';
+        $body = 'Deposit has been made to your account';
+        
+        $this->sendNotification($title, $body,$tokens); 
+    
 
         return response()->json([
             'message' => 'deposit successfully',
@@ -280,18 +307,84 @@ class WalletController extends Controller
 
     public function all_wallet_balance()
     {
-        $students = student::all();
-
-        $totalBalance = [];
-        foreach ($students as $student) {
-            $totalBalance[$student->id] = $student->wallet_balance;
-        }
+        $students = student::all();     
         $sum_balance = $students->sum('wallet_balance');
         return response()->json([
-            'Balance' => $totalBalance,
             'sum' => $sum_balance,
         ]);
     }
+    public function all_wallets_by_classes(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            
+            'class_level' => 'required|integer',
+            'class_number' => 'required|integer',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json($validator->errors());
+        }
+
+        $class_id=DB::table('classses')
+        ->where('classses.class_level',$request->class_level)
+        ->where('classses.class_number',$request->class_number)
+        ->value('classses.id');
+        
+        if(!$class_id){
+            return response()->json('class not found', 400);
+        }
+
+        $students = DB::table('users')
+        ->join('students','students.user_id','users.id')
+        ->where('students.class_id',$class_id)
+        ->select('students.id','students.wallet_balance','users.first_name','users.last_name')
+        ->get();
+
+        if(!$students){
+            return response()->json('this class is empty', 400);
+        }
+
+        return response()->json($students,200);
+    }
+
+    public function show_wallet_details_for_admin(Request $request)
+    {
+        
+        $validator = Validator::make($request->all(), [
+            
+            'student_id' => 'required|integer',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json($validator->errors());
+        }
+
+        $student = student::find($request->student_id);
+        if(!$student){
+            return response()->json('student not found', 400);
+        }
+        $balance = student::where('id', $request->student_id)->get(['wallet_balance','remain']);
+        $withdraw = DB::table('about_wallets')
+        ->join('fees','fees.id','about_wallets.fee_id')
+        ->where('about_wallets.student_id', $request->student_id)
+        ->select('fees.*','about_wallets.*')
+        ->get();
+    
+        
+
+        $deposit= DB::table('about_wallets')
+        ->where('student_id', $request->student_id)
+        ->where('about_wallets.description','deposit')
+        ->select('about_wallets.*')
+        ->get();
+
+        return response()->json([
+            'balance' => $balance,
+            'withdraw' => $withdraw,
+            'deposit'=>$deposit
+        ],200);
+    }
+
 
 
 }

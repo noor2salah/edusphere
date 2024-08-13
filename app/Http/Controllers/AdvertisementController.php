@@ -6,13 +6,16 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use App\Models\advertisement;
 use App\Models\classs;
+use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
-
+use App\Http\Traits\NotificationsTrait;
 
 
 class AdvertisementController extends Controller
 {
+    use NotificationsTrait;
+
     public function index()
     {
         $advertisements = Advertisement::all();
@@ -41,9 +44,9 @@ class AdvertisementController extends Controller
         $class_number = $request->input('class_number');
 
 
-    $photo_path = $request->file('photo_path')->store('images','public');
+        $photo_path = $request->file('photo_path')->store('images','public');
 
-    $imageUrl = asset('storage/'.$photo_path);
+        $imageUrl = asset('storage/'.$photo_path);
 
         $class = Classs::where('class_level', $class_level)
             ->where('class_number', $class_number)
@@ -59,6 +62,16 @@ class AdvertisementController extends Controller
             'photo_path' => $imageUrl,
         ]);
 
+        $tokens = User::
+        join('students','students.user_id','users.id')
+        ->where('students.class_id', $class->id)
+        ->pluck('fcm_token')->toArray(); 
+        
+        $title = 'New Advertisement';
+        $body = 'A new advertisement has been posted.';
+        
+        $this->sendNotification($title, $body,$tokens); 
+    
       
         return response()->json([
             'advertisements' => $advertisement,
@@ -71,7 +84,7 @@ class AdvertisementController extends Controller
         $advertisements = advertisement::find($id);
         if (!$advertisements) {
             return response()->json([
-                'message' => 'not found any Advertisements',
+                'message' => 'not found ',
 
             ], 200);
         }
@@ -178,6 +191,65 @@ class AdvertisementController extends Controller
         return response()->json([
             'message' => 'advertisements deleted successfully',
         ]);
+    }
+
+    public function show_all_by_class_by_type_for_admin(Request $request)
+    {
+
+        $validator = Validator::make($request->all(), [
+            
+            'class_level' => 'required|integer',
+            'class_number' => 'required|integer',
+            'type'=>'required|string',
+        ]);
+
+        $request->validate([
+
+            'type' => 'required|in:bus,trips,wallet,exam,results,instuctions,other,all',
+        ]);
+        
+        if ($validator->fails()) {
+            return response()->json($validator->errors());
+        }
+
+        $class_id=classs::
+        where('classses.class_level',$request->class_level)
+        ->where('classses.class_number',$request->class_number)
+        ->value('classses.id');
+        
+        if(!$class_id){
+            return response()->json('class not found', 400);
+        }
+
+        if($request->type=='all'){
+
+            $advertisements=DB::table('advertisements')
+            ->where('advertisements.class_id',$class_id)
+            ->select('advertisements.*')
+            ->get();
+    
+        }
+
+        else{
+
+            $advertisements=DB::table('advertisements')
+            ->where('advertisements.class_id',$class_id)
+            ->where('advertisements.type',$request->type)
+            ->select('advertisements.*')
+            ->get();
+    
+        }
+        if (count($advertisements)==0) {
+            return response()->json([
+                'message' => 'ther is no Advertisement',
+
+            ], 400);
+        }
+
+        return response()->json([
+            'message' => 'retruved successfully',
+            'data' => $advertisements,
+        ], 200);
     }
 }
 

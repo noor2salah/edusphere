@@ -25,6 +25,7 @@ return new class extends Migration
             $table->string('education')->nullable();
             $table->integer('salary')->nullable();
             $table->text('about')->nullable();
+            $table->integer('class_level')->nullable();
 
             $table->timestamps();
         });

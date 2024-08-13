@@ -22,10 +22,14 @@ class teacher extends Model
         'education',
         'salary',
         'about',
+        'class_level',
         'cv'
 
     ];
 
+    public static $rules = [
+        'class_level' => 'required|in:7,8,9',
+    ];
     public function user(){
         return $this->belongsTo(user::class);
     }

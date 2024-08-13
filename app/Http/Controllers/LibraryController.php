@@ -20,7 +20,7 @@ class LibraryController extends Controller
         $validator = Validator::make($request->all(),[
             'book_name' =>'required|string',
             'book_path'=>'required|mimes:pdf',
-            'photo_path'=>'nullable|image|max:2048',
+            'photo_path'=>'required|image|max:2048',
             'type' =>'required|string',
 
         ]);
@@ -70,6 +70,31 @@ class LibraryController extends Controller
     public function show_entertainment()
     {
         $books = library::where('type','entertainment')->get();
+        return response()->json($books,200);
+
+    }
+
+    public function show_all_books(Request $request)
+    {
+        $validator = Validator::make($request->all(),[
+            'type' =>'required|string',
+        ]);
+
+        $request->validate([
+            'type' => 'required|in:educational,entertainment',
+        ]);
+       
+        if($validator->fails())
+        {
+            return response()->json($validator->errors());
+        }
+
+        if($request->type=='educational'){
+            $books = library::where('type','educational')->get();
+        }
+        if($request->type=='entertainment'){
+            $books = library::where('type','entertainment')->get();
+        }
         return response()->json($books,200);
 
     }
@@ -141,6 +166,18 @@ class LibraryController extends Controller
         }
         return response($fav_books,200);
 
+
+    }
+
+    public function delete_book($id){
+        $book=library::find($id);
+
+        if(!$book){
+            return response('book not found');
+        }
+
+        $book->delete();
+        return response('book deleted successfully');
 
     }
 
