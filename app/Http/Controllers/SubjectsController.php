@@ -310,7 +310,6 @@ class SubjectsController extends Controller
 
     }
     public function show_subjects_of_the_class(Request $request)
->>>>>>> dfc41436faa7adcd1b42b99adf78fe3c047273e9
     {
         $the_class=$request->input('class_level');
         $subjects = DB::table('subjects')
