@@ -280,9 +280,7 @@ class SubjectsController extends Controller
 
     }
   
-<<<<<<< HEAD
-    public function show_the_schedule_for_teacher(Request $request)
-=======
+
     public function show_the_schedule_for_teacher(){
 
         $user_id = Auth::id();
