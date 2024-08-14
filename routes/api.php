@@ -253,6 +253,7 @@ Route::group(["middleware"=>"translate"],function() {
 Route::group(["middleware"=>"translate"],function() {
 
     Route::post('show_all_teachers', [TeacherController::class, 'show_all_teachers']);
+    Route::get('show_list_of_all_teachers_for_admin', [TeacherController::class, 'show_list_of_all_teachers_for_admin']);
     
 });
 

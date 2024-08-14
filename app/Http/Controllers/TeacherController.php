@@ -15,6 +15,21 @@ use Illuminate\Support\Facades\Auth;
 
 class TeacherController extends Controller
 {
+    public function show_list_of_all_teachers_for_admin(){
+
+       
+       
+        $teachers = DB::table('users')
+        ->join('teachers','teachers.user_id','users.id')
+        ->select('teachers.id','users.first_name','users.last_name','teachers.specialization')
+        ->get();
+
+        if(count($teachers)==0){
+            return response()->json('there is no teacher for this class', 400);
+        }
+
+        return response()->json($teachers, 200);
+    }
     public function show_all_teachers(Request $request){
 
         $validator = Validator::make($request->all(), [
