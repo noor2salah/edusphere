@@ -373,6 +373,64 @@ class TaskController extends Controller
         ]);
     }
 
+    public function show_task_for_teacher($id)
+    {
+
+        $user_id = Auth::id();
+
+        $teacher_id = DB::table('teachers')
+            ->where('teachers.user_id', $user_id)
+            ->value('teachers.id');
+
+        $teacher = Student::find($teacher_id);
+
+        if (!$teacher) {
+
+            return response()->json('You are not teacher', 403);
+        }
+
+        $check1 = DB::table('tasks')
+            ->where('tasks.id', $id)
+            ->join('class_subjects', 'class_subjects.id', 'tasks.class_subject_id')
+            ->where('class_subjects.teacher_id',$teacher_id)
+            ->select('tasks.*')
+            ->first();
+
+        if (!$check1) {
+            return response()->json(['error' => 'this task is not available to you'], 404);
+        }
+
+
+        $the_task = DB::table('tasks')
+            ->where('tasks.id', $id)
+            ->join('class_subjects', 'class_subjects.id', 'tasks.class_subject_id')
+            ->join('subjects', 'subjects.id', 'class_subjects.subject_id')
+            ->join('teachers', 'teachers.id', 'class_subjects.teacher_id')
+            ->join('users', 'users.id', 'teachers.user_id')
+            ->select('tasks.*', 'subjects.name', 'users.first_name', 'users.last_name')
+            ->get();
+
+        $the_questions = DB::table('tasks')
+            ->where('tasks.id', $id)
+            ->join('task_questions', 'task_questions.task_id', '=', 'tasks.id')
+            ->select('task_questions.*')
+            ->get();
+
+        $the_answers = DB::table('tasks')
+            ->where('tasks.id', $id)
+            ->join('task_questions', 'task_questions.task_id', '=', 'tasks.id')
+            ->join('question_answers', 'question_answers.task_question_id', '=', 'task_questions.id')
+            ->select('question_answers.*')
+            ->get();
+
+        return response([
+            'task' => $the_task,
+            'questions' => $the_questions,
+            'answers' => $the_answers
+        ]);
+    }
+
+
     public function solve_task(Request $request)
     {
 
@@ -492,4 +550,41 @@ class TaskController extends Controller
 
         return response($t);
     }
+
+    public function delete_question($id)
+    {
+        $user_id = Auth::id();
+
+        $teacher_id = DB::table('teachers')
+            ->where('teachers.user_id', $user_id)
+            ->value('teachers.id');
+
+        $teacher = Student::find($teacher_id);
+
+        if (!$teacher) {
+
+            return response()->json('You are not teacher', 403);
+        }
+
+        $t =task_question::
+            where('task_questions.id', $id)
+            ->join('tasks', 'tasks.id', 'task_questions.task_id')  
+            ->where('tasks.finished','0')
+            ->join('class_subjects', 'class_subjects.id', 'tasks.class_subject_id')
+            ->join('teachers', 'teachers.id', 'class_subjects.teacher_id')
+            ->where('teachers.id', $teacher_id)
+            ->select('task_questions.*')
+            ->first();
+        
+        if (!$t) {
+            return response()->json('not_found', 400);
+        }    
+
+        $t->delete();  
+
+        return response()->json('deleted', 200);
+    }
+
+    
+    
 }

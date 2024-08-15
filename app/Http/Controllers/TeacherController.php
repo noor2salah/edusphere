@@ -7,6 +7,7 @@ use App\Models\subject;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use App\Models\User;
+use App\Models\student;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpKernel\Profiler\Profile;
@@ -202,6 +203,23 @@ class TeacherController extends Controller
 
 
 
+    }
+
+    public function search_for_student(Request $request){
+        $request->validate([
+            'name' => 'required|string|min:1',
+        ]);
+
+        $name = $request->input('name');
+
+        $students = Student::
+        join('users','users.id','students.id')
+        ->where('users.first_name', 'like', "%{$name}%")
+        ->select('students.id','students.user_id','users.first_name','users.last_name')
+        ->get();
+
+        return response()->json($students);
+    
     }
 
 }

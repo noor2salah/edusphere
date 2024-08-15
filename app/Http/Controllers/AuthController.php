@@ -327,8 +327,8 @@ public function login(Request $request)
             $user1=DB::table('users')
             ->where('users.id',$user->id)
             ->join('teachers','teachers.user_id','users.id')
-            ->select('teachers.*','teachers.id as teacher_id','users.*')
-            ->get();
+            ->select('teachers.class_level','users.*')
+            ->first();
 
         }
 
@@ -338,7 +338,7 @@ public function login(Request $request)
             ->where('users.id',$user->id)
             ->join('students','students.user_id','users.id')
             ->join('classses','classses.id','students.class_id')
-            ->select('classses.class_level','students.*','students.id as student_id','users.*')
+            ->select('classses.class_level','users.*')
             ->first();
 
         }

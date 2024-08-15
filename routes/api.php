@@ -178,12 +178,14 @@ Route::group(["middleware" => ["auth:api", "translate"]], function () {
 
     Route::post('solve_task', [TaskController::class, 'solve_task']);
     Route::get('show_task/{id}', [TaskController::class, 'show_task']);
+    Route::get('show_task_for_teacher/{id}', [TaskController::class, 'show_task_for_teacher']);
     Route::get('show_all_tasks_for_student', [TaskController::class, 'show_all_tasks_for_student']);
     Route::get('show_all_tasks_for_teacher', [TaskController::class, 'show_all_tasks_for_teacher']);
     Route::post('store_task', [TaskController::class, 'store_task']);
     Route::post('lock_task', [TaskController::class, 'lock_task']);
     Route::post('store_question', [TaskController::class, 'store_question']);
     Route::get('show_classes_for_teacher_for_joud', [TaskController::class, 'show_classes_for_teacher_for_joud']);
+    Route::delete('delete_question/{id}',[TaskController::class,'delete_question']);
 
 });
 
@@ -194,7 +196,6 @@ Route::group(["middleware"=>"translate"],function() {
     Route::post('create_fee', [WalletController::class, 'create_fee']);
     Route::post('deposit_wallet', [WalletController::class, 'deposit_wallet']);
     Route::get('all_wallet_balance', [WalletController::class, 'all_wallet_balance']);
-    Route::post('all_wallets_by_classes', [WalletController::class, 'all_wallets_by_classes']);
     Route::post('show_wallet_details_for_admin', [WalletController::class, 'show_wallet_details_for_admin']);
 
 });
@@ -239,8 +240,6 @@ Route::group(["middleware" => ["auth:api", "translate"]], function () {
 //show students for admin
 
 Route::get('number_of_total_school_students_for_admin', [StudentController::class, 'number_of_total_school_students_for_admin']);
-Route::post('number_of_total_class_level_students', [StudentController::class, 'number_of_total_class_level_students']);
-Route::post('number_of_total_class_students', [StudentController::class, 'number_of_total_class_students']);
 
 Route::group(["middleware"=>"translate"],function() {
 
@@ -263,4 +262,11 @@ Route::group(["middleware" => ["auth:api", "translate"]], function () {
     Route::get('show_classes_for_teacher', [TeacherController::class, 'show_classes_for_teacher']);
     Route::post('show_students_by_class_for_teacher', [TeacherController::class, 'show_students_by_class_for_teacher']);
 
+});
+
+//search
+Route::group(["middleware"=>"translate"],function() {
+
+    Route::post('search_for_student', [TeacherController::class, 'search_for_student']);
+    
 });

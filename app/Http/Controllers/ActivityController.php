@@ -138,7 +138,7 @@ class ActivityController extends Controller
             'homewrk_percantage'=>$homework_percentage,
             
             'task'=>$task,
-            'total_task'=>$total_task,
+            'total_task'=>(int)$total_task,
             'task_percentage'=>$task_percentage
 
             

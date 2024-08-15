@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\about_wallet;
+use App\Models\classs;
 use App\Models\student;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -306,45 +307,45 @@ class WalletController extends Controller
     }
 
     public function all_wallet_balance()
-    {
-        $students = student::all();     
-        $sum_balance = $students->sum('wallet_balance');
-        return response()->json([
-            'sum' => $sum_balance,
-        ]);
-    }
-    public function all_wallets_by_classes(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            
-            'class_level' => 'required|integer',
-            'class_number' => 'required|integer',
-        ]);
+    {      
 
-        if ($validator->fails()) {
-            return response()->json($validator->errors());
-        }
-
-        $class_id=DB::table('classses')
-        ->where('classses.class_level',$request->class_level)
-        ->where('classses.class_number',$request->class_number)
-        ->value('classses.id');
+        $class_ids=DB::table('classses')
+        ->pluck('classses.id');
         
-        if(!$class_id){
-            return response()->json('class not found', 400);
+        
+        if ($class_ids->isEmpty()) {
+            return response()->json('There are no classes', 400);
         }
 
-        $students = DB::table('users')
-        ->join('students','students.user_id','users.id')
-        ->where('students.class_id',$class_id)
-        ->select('students.id','students.wallet_balance','users.first_name','users.last_name')
+        $sum_balance = student::sum('wallet_balance');
+
+        $balances = DB::table('students')
+        ->select('class_id', DB::raw('SUM(wallet_balance) as total_balance'))
+        ->whereIn('class_id', $class_ids)
+        ->groupBy('class_id')
         ->get();
 
-        if(!$students){
-            return response()->json('this class is empty', 400);
-        }
+        $sum_balance_by_class=[] ;
 
-        return response()->json($students,200);
+        $sum_balance_by_class['all'] =  $sum_balance;
+
+        foreach ($balances as $balance) {
+
+            $class_level = classs::where('id',$balance->class_id)->value('class_level'); 
+            $class_number = classs::where('id',$balance->class_id)->value('class_number');       
+            $formatted_key = $class_level . '-' . $class_number;
+    
+            // Add the balance to the array with the formatted key
+            $sum_balance_by_class[$formatted_key] = $balance->total_balance;
+        }
+    
+
+    if ($sum_balance === 0) {
+        return response()->json('There are no students with wallet balances', 400);
+    }
+        return response()->json([
+            $sum_balance_by_class
+        ],200);
     }
 
     public function show_wallet_details_for_admin(Request $request)

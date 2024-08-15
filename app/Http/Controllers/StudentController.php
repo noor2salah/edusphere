@@ -8,6 +8,7 @@ use App\Models\ResetCodePassword;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use App\Models\User;
+use App\Models\classs;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
@@ -20,33 +21,37 @@ class StudentController extends Controller
 
     public function number_of_total_school_students_for_admin(){
 
-        $the_number=DB::table('students')
+        $total_number=DB::table('students')
         ->count('students.id');
 
-        return response($the_number);
-    }
-
-    public function number_of_total_class_level_students(Request $request){
-
-        $validator = Validator::make($request->all(), [
-
-            'class_level'=>'required|integer'
-        ]);
-
-        $request->validate([
-            'class_level' => 'required|in:7,8,9',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json($validator->errors());
+        $class_ids=DB::table('classses')
+        ->pluck('classses.id');
+        
+        
+        if ($class_ids->isEmpty()) {
+            return response()->json('There are no classes', 400);
         }
 
-        $the_number=DB::table('students')
-        ->join('classses','classses.id','students.class_id')
-        ->where('classses.class_level',$request->class_level)
-        ->count('students.id');
+        $numbers_by_class = DB::table('students')
+        ->select('class_id', DB::raw('count(id) as total_number'))
+        ->whereIn('class_id', $class_ids)
+        ->groupBy('class_id')
+        ->get();
 
-        return response($the_number);
+        $numbers=[];
+
+        $numbers['all']=$total_number;
+
+        foreach($numbers_by_class as $number){
+
+            $class_level = classs::where('id',$number->class_id)->value('class_level'); 
+            $class_number = classs::where('id',$number->class_id)->value('class_number');       
+            $formatted_key = $class_level . '-' . $class_number;
+    
+            $numbers[$formatted_key]=$number->total_number;
+        }
+
+        return response($numbers);
     }
     
     public function number_of_total_class_students(Request $request){
