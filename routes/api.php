@@ -227,6 +227,7 @@ Route::group(["middleware"=>"translate"],function() {
 
     Route::post('store_grade_test', [GradesController::class, 'store_grade_test']);
     Route::post('delete_grade', [GradesController::class, 'delete_grade']);
+    Route::post('show_student_grade_for_admin', [GradesController::class, 'show_student_grade_for_admin']);
     
 });
 

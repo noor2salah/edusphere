@@ -329,4 +329,86 @@ class GradesController extends Controller
         }, $st);
         return response()->json(array_values((array) $convertedData));
     }
+
+    public function show_student_grade_for_admin(Request $request){
+        $e = $request->all();
+        $validator = Validator::make($e, [
+            
+            'student_id' => 'required',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json($validator->errors());
+        }
+
+        $student=student::find($request->student_id);
+
+        
+        $output = [];
+        $types = ['exam', 'quiz', 'homework', 'oral_exam'];
+
+        $avg_by_type = [];
+        $subjects = Subject::all();
+
+        // Get all grades with related tables in a single query
+        $grades = DB::table('grades')
+            ->where('grades.student_id', $student->id)
+            ->join('tests', 'tests.id', '=', 'grades.test_id')
+            ->join('class_subjects', 'class_subjects.id', '=', 'tests.class_subject_id')
+            ->join('subjects', 'subjects.id', '=', 'class_subjects.subject_id')
+            ->select('subjects.name as subject_name', 'tests.type as test_type', 'grades.grade')
+            ->get();
+
+        // Group grades by subject and type
+        $groupedGrades = [];
+        foreach ($grades as $grade) {
+            $groupedGrades[$grade->subject_name][$grade->test_type][] = $grade->grade;
+        }
+
+
+        // Calculate the averages
+        foreach ($subjects as $subject) {
+            $subjectName = $subject->name;
+            $total_garde[$subjectName] = $subject->total_grade;
+            foreach ($types as $type) {
+
+                $avg_by_type[$subjectName][$type] = isset($groupedGrades[$subjectName][$type])
+                    ? array_sum($groupedGrades[$subjectName][$type]) / count($groupedGrades[$subjectName][$type])
+                    : null; // or 0 or another default value
+                $weight = 0;
+                if (in_array($type, ['quiz', 'oral_exam', 'homework'])) {
+                    $weight = 0.2;
+                } elseif ($type == 'exam') {
+                    $weight = 0.4;
+                }
+
+                // Calculate the total grade by type with the weight
+                $total_grade_by_type[$subjectName][$type] = $total_garde[$subjectName] * $weight;
+            }
+        }
+        $output = [];
+        $gradesNames = $grades->pluck('subject_name')->unique()->values()->all();
+        foreach ($gradesNames as $key => $name) {
+
+            $output[$key]['name'] = $name;
+            $output[$key]['avg'] = $avg_by_type[$name];
+            $output[$key]['avg_sum'] = array_sum($output[$key]['avg']);
+            $output[$key]['total_grade'] = $total_garde[$name];
+            $output[$key]['total_grade_by_type'] = $total_grade_by_type[$name];
+        }
+        $output1 = [];
+
+        $output1['his_grade'] = array_sum(array_column($output, 'avg_sum')); // Sum all 'avg_sum' values
+        $output1['total_grade'] = array_sum(array_column($output, 'total_grade')); // Sum all 'total_grade' values
+            
+        
+
+        return response(
+            $output1
+
+        );
+
+
+        
+    } 
 }

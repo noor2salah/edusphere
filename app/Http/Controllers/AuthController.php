@@ -575,7 +575,7 @@ public function login(Request $request)
 
         return response()->json([
             'message' => 'edited successfully ',
-            $user->email
+            'edited'=>$user->email
             ], 200);
 
     }
@@ -616,7 +616,7 @@ public function login(Request $request)
 
         return response()->json([
             'message' => 'edited successfully ',
-            $user->phone
+            'edited'=>$user->phone
             ], 200);
 
 
@@ -657,7 +657,7 @@ public function login(Request $request)
 
         return response()->json([
             'message' => 'edited successfully ',
-            $user->address
+            'edited'=>$user->address
             ], 200);
 
     }
@@ -702,7 +702,7 @@ public function login(Request $request)
 
         return response()->json([
             'message' => 'edited successfully ',
-            $user->profile_picture_path
+            'edited'=>$user->profile_picture_path
             ], 200);
 
     }
@@ -758,7 +758,7 @@ public function login(Request $request)
 
         return response()->json([
             'message' => 'edited successfully ',
-            $user->password
+            'edited'=>$user->password
             ], 200);
 
     }

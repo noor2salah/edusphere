@@ -45,6 +45,7 @@ class SubjectsController extends Controller
 
         $request->validate([
             'the_class' => 'required|in:7,8,9',
+            'name'=>'required|in:Islamic religious education,arabic,art,Science,history,geography,mathematics,Music,National education,Physics and chemistry,Information and communications technology,Russian,english,french'
         ]);
 
         $subject=DB::table('subjects')
