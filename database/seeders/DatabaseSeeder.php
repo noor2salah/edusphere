@@ -26,16 +26,24 @@ class DatabaseSeeder extends Seeder
             CreateAdminSeeder::class,]);   
         $this->call([
             Subject::class,]);
-        $this->call([
-            Subject_units::class,]); 
+        //$this->call([
+          //  Subject_units::class,]); 
         $this->call([
             StudentSeeder::class,]); 
         $this->call([
             TeacherSeeder::class,]); 
         $this->call([
-            Class_subject::class,]);        
+            Class_subject::class,]);
         $this->call([
-            TaskSeeder::class,]); 
+            TestSeeder::class,]);         
+        $this->call([
+            grade_seeder::class,]);             
+        $this->call([
+            TaskSeeder::class,]);        
+        $this->call([
+            task_grade_seeder::class,]);
+        $this->call([
+            fee_seeder::class,]);
               
     }
 }

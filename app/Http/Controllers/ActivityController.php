@@ -42,6 +42,7 @@ class ActivityController extends Controller
 
         foreach($total_grades as $total_grade){
 
+
             $grade=$total_grade->total_grade;
             $total_homework+=0.2 * $grade;
 
@@ -50,19 +51,67 @@ class ActivityController extends Controller
             $total_oral_exam+=0.2 * $grade;
 
             $total_quiz+=0.2 * $grade;
+
+            if($grade==0){
+
+                $grade=$total_grade->total_grade;
+                $total_homework+=0.01;
+    
+                $total_exam+=0.01;
+    
+                $total_oral_exam+=0.01;
+    
+                $total_quiz+=0.01;
+
+    
+            }
+
         }
+        
 
         $count=count($total_grades);
 
+        if($count==0){
+            $count=0.01;
+        }
+
+
         $total_homework=$total_homework / $count;
+        if($total_homework==0){
+
+            $total_homework+=0.01;
+
+        }
         $total_exam=$total_exam / $count;
+
+        if($total_exam==0){
+
+            $total_exam+=0.01;
+
+        }
         $total_oral_exam=$total_oral_exam / $count;
+
+        if($total_oral_exam==0){
+
+            $total_oral_exam+=0.01;
+
+        }
         $total_quiz=$total_quiz / $count;
+
+        if($total_quiz==0){
+
+            $total_quiz+=0.01;
+
+        }
 
         $total_task=DB::table('tasks')
         ->join('class_subjects','class_subjects.id','tasks.class_subject_id')
         ->where('class_subjects.class_id',$student->class_id)
         ->avg('tasks.total_grade');
+
+        if($total_task==0){
+            $total_task=0.01;
+        }
 
 
         $homework=DB::table('grades')
@@ -121,25 +170,25 @@ class ActivityController extends Controller
 
  
         return response([
-            'quiz'=>$quiz,
-            'total_quiz'=>$total_quiz,
-            'quiz_percentage'=>$quiz_percentage,
+            'quiz'=>(int)$quiz,
+            'total_quiz'=>(int)$total_quiz,
+            'quiz_percentage'=>(int)$quiz_percentage,
             
-            'exam'=>$exam,
-            'total_exam'=>$total_exam,
-            'exam_percentage'=>$exam_percentage,
+            'exam'=>(int)$exam,
+            'total_exam'=>(int)$total_exam,
+            'exam_percentage'=>(int)$exam_percentage,
             
-            'oral_exam'=>$oral_exam,
-            'total_oral_exam'=>$total_oral_exam,
-            'oral_exam_percentage'=>$oral_exam_percentage,
+            'oral_exam'=>(int)$oral_exam,
+            'total_oral_exam'=>(int)$total_oral_exam,
+            'oral_exam_percentage'=>(int)$oral_exam_percentage,
             
-            'homework'=>$homework,
-            'total_homework'=>$total_homework,
-            'homewrk_percantage'=>$homework_percentage,
+            'homework'=>(int)$homework,
+            'total_homework'=>(int)$total_homework,
+            'homewrk_percantage'=>(int)$homework_percentage,
             
-            'task'=>$task,
+            'task'=>(int)$task,
             'total_task'=>(int)$total_task,
-            'task_percentage'=>$task_percentage
+            'task_percentage'=>(int)$task_percentage
 
             
         ]);

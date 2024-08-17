@@ -127,7 +127,11 @@ public function AddAccountStudent(Request $request)
     // Check if the class exists
     $class = Classs::where('class_level', $class_level)
         ->where('class_number', $class_number)
-        ->firstOrFail();
+        ->first();
+
+    if(!$class){
+        return response()->json(['this class not found'
+        ], 400);    }    
 
     try {
         DB::beginTransaction();

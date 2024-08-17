@@ -229,6 +229,11 @@ class GradesController extends Controller
             ->select('students.*')
             ->get();
 
+        if (count($students_at_the_same_class)==1) {
+
+            return response()->json('there is no student in your class', 403);
+        }
+
         $class_level = DB::table('classses')
             ->where('classses.id', $student->class_id)
             ->value('classses.class_level');
@@ -241,12 +246,21 @@ class GradesController extends Controller
             ->select('subjects.*')
             ->get();
 
+        if (!$subjects) {
+
+            return response()->json('there is no subjects to your class', 403);
+        }
 
         $students = DB::table('students')
             ->where('students.class_id', $student->class_id)
             ->join('users', 'users.id', 'students.user_id')
             ->select('students.id', 'users.first_name', 'users.last_name', 'users.profile_picture_path')
             ->get();
+
+        if (!$students) {
+
+            return response()->json('there is no student in your class', 403);
+        }    
 
         $students = $students->keyBy('id')->toArray();
 
@@ -288,10 +302,15 @@ class GradesController extends Controller
                 $total_garde[$subjectName] = $subject->total_grade;
                 foreach ($types as $type) {
 
-                    $avg_by_type[$student1_id][$subjectName][$type] = isset($groupedGrades[$student1_id][$subjectName][$type])
+                    if ($groupedGrades) {
+
+                        $avg_by_type[$student1_id][$subjectName][$type] = isset($groupedGrades[$student1_id][$subjectName][$type])
                         ? array_sum($groupedGrades[$student1_id][$subjectName][$type]) / count($groupedGrades[$student1_id][$subjectName][$type])
                         : null; // or 0 or another default value
 
+                    }
+
+                   
                 }
                 $student_grade_in_subject[$student1_id][$subjectName] = array_sum($avg_by_type[$student1_id][$subjectName]);
             }

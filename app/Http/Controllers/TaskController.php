@@ -87,8 +87,23 @@ class TaskController extends Controller
             return response()->json('task not found',400);
         }
 
+        $class_id=DB::table('tasks')
+        ->where('tasks.id',$task->id)
+        ->join('class_subjects','class_subjects.id','tasks.class_subject_id')
+        ->value('class_subjects.class_id');
+
         $task->finished=1;
         $task->save();
+
+        $tokens = User::
+        join('students','students.user_id','users.id')
+        ->where('students.class_id', $class_id)
+        ->pluck('fcm_token')->toArray(); 
+        
+        $title = 'New Task';
+        $body = 'A new task has been uploaded.';
+        
+        $this->sendNotification($title, $body,$tokens);
 
         return response()->json($task,200);
 
@@ -157,18 +172,7 @@ class TaskController extends Controller
         $task->total_grade=$task_grade;
         $task->save();
         
-        $tokens = User::
-        join('students','students.user_id','users.id')
-        ->where('students.class_id', $request->class_id)
-        ->pluck('fcm_token')->toArray(); 
         
-        $title = 'New Task';
-        $body = 'A new task has been uploaded.';
-        
-        $this->sendNotification($title, $body,$tokens); 
-    
-
-
         return response([
             'question'=>$task_question,
             'answers'=>$question_answers
