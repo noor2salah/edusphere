@@ -26,8 +26,8 @@ class DatabaseSeeder extends Seeder
             CreateAdminSeeder::class,]);   
         $this->call([
             Subject::class,]);
-        //$this->call([
-          //  Subject_units::class,]); 
+        $this->call([
+            Subject_units::class,]); 
         $this->call([
             StudentSeeder::class,]); 
         $this->call([
@@ -44,6 +44,9 @@ class DatabaseSeeder extends Seeder
             task_grade_seeder::class,]);
         $this->call([
             fee_seeder::class,]);
+        $this->call([
+            advertisement_seeder::class,]);
+        
               
     }
 }
